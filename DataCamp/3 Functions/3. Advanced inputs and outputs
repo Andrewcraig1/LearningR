@@ -1,0 +1,222 @@
+3. Advanced inputs and outputs
+
+Now you've seen how useful the map functions are for reducing duplication, we'll introduce you to a few more functions in purrr that allow you to handle more complicated inputs and outputs. In particular, you'll learn how to deal with functions that might return an error, how to iterate over multiple arguments and how to iterate over functions that have no output at all.
+
+--------------------------------------------------------------------------------
+
+## 1. Creating a safe function
+
+safely() is an adverb; it takes a verb and modifies it. That is, it takes a function as an argument and it returns a function as its output. The function that is returned is modified so it never throws an error (and never stops the rest of your computation!).
+
+Instead, it always returns a list with two elements:
+
+result is the original result. If there was an error, this will be NULL.
+error is an error object. If the operation was successful this will be NULL.
+Let's try to make the readLines() function safe.
+
+EXAMPLE
+
+# Create safe_readLines() by passing readLines() to safely()
+safe_readLines <- safely(readLines)
+
+# Call safe_readLines() on "http://example.org"
+safe_readLines("http://example.org")
+
+# Call safe_readLines() on "http://asdfasdasdkfjlda"
+safe_readLines("http://asdfasdasdkfjlda")
+
+OUTPUT
+----------
+> safe_readLines("http://example.org")
+$result
+ [1] "<!doctype html>"                                                                                      
+ [2] "<html>"                                                                                               
+ [3] "<head>"                                                                                               
+ [4] "    <title>Example Domain</title>"                                                                    
+ [5] ""                                                                                                     
+ [6] "    <meta charset=\"utf-8\" />"                                                                       
+ [7] "    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\" />"                        
+ [8] "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"                       
+ [9] "    <style type=\"text/css\">"                                                                        
+[10] "    body {"                                                                                           
+[11] "        background-color: #f0f0f2;"                                                                   
+[12] "        margin: 0;"                                                                                   
+[13] "        padding: 0;"                                                                                  
+[14] "        font-family: \"Open Sans\", \"Helvetica Neue\", Helvetica, Arial, sans-serif;"                
+[15] "        "                                                                                             
+[16] "    }"                                                                                                
+[17] "    div {"                                                                                            
+[18] "        width: 600px;"                                                                                
+[19] "        margin: 5em auto;"                                                                            
+[20] "        padding: 50px;"                                                                               
+[21] "        background-color: #fff;"                                                                      
+[22] "        border-radius: 1em;"                                                                          
+[23] "    }"                                                                                                
+[24] "    a:link, a:visited {"                                                                              
+[25] "        color: #38488f;"                                                                              
+[26] "        text-decoration: none;"                                                                       
+[27] "    }"                                                                                                
+[28] "    @media (max-width: 700px) {"                                                                      
+[29] "        body {"                                                                                       
+[30] "            background-color: #fff;"                                                                  
+[31] "        }"                                                                                            
+[32] "        div {"                                                                                        
+[33] "            width: auto;"                                                                             
+[34] "            margin: 0 auto;"                                                                          
+[35] "            border-radius: 0;"                                                                        
+[36] "            padding: 1em;"                                                                            
+[37] "        }"                                                                                            
+[38] "    }"                                                                                                
+[39] "    </style>    "                                                                                     
+[40] "</head>"                                                                                              
+[41] ""                                                                                                     
+[42] "<body>"                                                                                               
+[43] "<div>"                                                                                                
+[44] "    <h1>Example Domain</h1>"                                                                          
+[45] "    <p>This domain is established to be used for illustrative examples in documents. You may use this"
+[46] "    domain in examples without prior coordination or asking for permission.</p>"                      
+[47] "    <p><a href=\"http://www.iana.org/domains/example\">More information...</a></p>"                   
+[48] "</div>"                                                                                               
+[49] "</body>"                                                                                              
+[50] "</html>"                                                                                              
+
+$error
+NULL
+----------
+> 
+> # Call safe_readLines() on "http://asdfasdasdkfjlda"
+> safe_readLines("http://asdfasdasdkfjlda")
+Warning message: unable to resolve 'asdfasdasdkfjlda'
+$result
+NULL
+
+$error
+<simpleError in file(con, "r"): cannot open the connection>
+
+--------------------------------------------------------------------------------
+##2. Using map safely
+
+One feature of safely() is that it plays nicely with the map() functions. Consider this list containing the two URLs from the last exercise, plus one additional URL to make things more interesting:
+
+urls <- list(
+  example = "http://example.org",
+  rproj = "http://www.r-project.org",
+  asdf = "http://asdfasdasdkfjlda"
+)
+We are interested in quickly downloading the HTML files at each URL. You might try:
+
+map(urls, readLines)
+But it results in an error, Error in file(con, "r") : cannot open the connection, and no output for any of the URLs. Go on, try it!
+
+We can solve this problem by using our safe_readLines() instead.
+
+# Define safe_readLines()
+safe_readLines <- safely(readLines)
+
+# Use the safe_readLines() function with map(): html
+html<-map(urls,safe_readLines)
+
+# Call str() on html
+str(html)
+
+# Extract the result from one of the successful elements
+html[[1]][[1]]
+
+# Extract the error from the element that was unsuccessful
+html[[3]][[2]]
+-----------
+OUTPUT
+
+ ----------- 
+
+> # Call str() on html
+> str(html)
+List of 3
+ $ example:List of 2
+  ..$ result: chr [1:50] "<!doctype html>" "<html>" "<head>" "    <title>Example Domain</title>" ...
+  ..$ error : NULL
+ $ rproj  :List of 2
+  ..$ result: chr [1:102] "<!DOCTYPE html>" "<html lang=\"en\">" "  <head>" "    <meta charset=\"utf-8\">" ...
+  ..$ error : NULL
+ $ asdf   :List of 2
+  ..$ result: NULL
+  ..$ error :List of 2
+  .. ..$ message: chr "cannot open the connection"
+  .. ..$ call   : language file(con, "r")
+  .. ..- attr(*, "class")= chr [1:3] "simpleError" "error" "condition"
+> 
+-----------
+> # Extract the result from one of the successful elements
+
+> html[[1]][[1]]
+ [1] "<!doctype html>"                                                                                      
+ [2] "<html>"                                                                                               
+ [3] "<head>"                                                                                               
+ [4] "    <title>Example Domain</title>"                                                                    
+ [5] ""                                                                                                     
+ [6] "    <meta charset=\"utf-8\" />"                                                                       
+ [7] "    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\" />"                        
+ [8] "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"                       
+ [9] "    <style type=\"text/css\">"                                                                        
+[10] "    body {"                                                                                           
+[11] "        background-color: #f0f0f2;"                                                                   
+[12] "        margin: 0;"                                                                                   
+[13] "        padding: 0;"                                                                                  
+[14] "        font-family: \"Open Sans\", \"Helvetica Neue\", Helvetica, Arial, sans-serif;"                
+[15] "        "                                                                                             
+[16] "    }"                                                                                                
+[17] "    div {"                                                                                            
+[18] "        width: 600px;"                                                                                
+[19] "        margin: 5em auto;"                                                                            
+[20] "        padding: 50px;"                                                                               
+[21] "        background-color: #fff;"                                                                      
+[22] "        border-radius: 1em;"                                                                          
+[23] "    }"                                                                                                
+[24] "    a:link, a:visited {"                                                                              
+[25] "        color: #38488f;"                                                                              
+[26] "        text-decoration: none;"                                                                       
+[27] "    }"                                                                                                
+[28] "    @media (max-width: 700px) {"                                                                      
+[29] "        body {"                                                                                       
+[30] "            background-color: #fff;"                                                                  
+[31] "        }"                                                                                            
+[32] "        div {"                                                                                        
+[33] "            width: auto;"                                                                             
+[34] "            margin: 0 auto;"                                                                          
+[35] "            border-radius: 0;"                                                                        
+[36] "            padding: 1em;"                                                                            
+[37] "        }"                                                                                            
+[38] "    }"                                                                                                
+[39] "    </style>    "                                                                                     
+[40] "</head>"                                                                                              
+[41] ""                                                                                                     
+[42] "<body>"                                                                                               
+[43] "<div>"                                                                                                
+[44] "    <h1>Example Domain</h1>"                                                                          
+[45] "    <p>This domain is established to be used for illustrative examples in documents. You may use this"
+[46] "    domain in examples without prior coordination or asking for permission.</p>"                      
+[47] "    <p><a href=\"http://www.iana.org/domains/example\">More information...</a></p>"                   
+[48] "</div>"                                                                                               
+[49] "</body>"                                                                                              
+[50] "</html>"                                                                                              
+-----------
+> # Extract the error from the element that was unsuccessful
+> html[[3]][[2]]
+<simpleError in file(con, "r"): cannot open the connection>
+
+--------------------------------------------------------------------------------
+## 3. Working with safe output
+
+We now have output that contains the HTML for each of the two URLs on which readLines() was successful and the error for the other. But the output isn't that easy to work with, since the results and errors are buried in the inner-most level of the list.
+
+purrr provides a function transpose() that reshapes a list so the inner-most level becomes the outer-most level. In otherwords, it turns a list-of-lists "inside-out". Consider the following list:
+
+nested_list <- list(
+   x1 = list(a = 1, b = 2),
+   x2 = list(a = 3, b = 4)
+)
+If I need to extract the a element in x1, I could do nested_list[["x1"]][["a"]]. However, if I transpose the list first, the order of subsetting reverses. That is, to extract the same element I could also do transpose(nested_list)[["a"]][["x1"]].
+
+This is really handy for safe output, since we can grab all the results or all the errors really easily.
+
+

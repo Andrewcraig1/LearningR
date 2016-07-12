@@ -1,0 +1,388 @@
+FUNCTIONS
+CHAPTER 1 & 2: A QUICK REFRESHER
+-----------------------------------------------------------------------------------------
+To understnad computations in R, two slogans are helpful:
+ _  everything that exists is an object
+ -  everything that happens is a function call
+
+  every function has three components:
+  #  formal argument
+  #	 body
+  #   environment ( where the function looks for variables)
+
+  ratio<- function (arg1, arg2){
+  					#body
+  }
+-----------------------------------------------------------------------------------------
+  OUTUT: RETURN value
+  -  the last expression evaluated in a function is the 'return value'
+  -  "return"  forces the function to stop execution and return a value. It is used in a special case not routinely.
+
+
+   In R functions are OBJECTS.
+-----------------------------------------------------------------------------------------
+   *** ARGUMENTS ***
+
+   Arguments are specified by name or position.
+   example:
+   mean(c(1:9, NA), trim=0.1, na.rm=TRUE)
+         by position,  by name,   , by name
+
+
+For functions you and others use often, it's okay to use positional matching for the first one or two arguments. These are usually the data to be computed on. Good examples are the x argument to the summary functions (mean(), sd(), etc.) and the x and y arguments to plotting functions.
+
+However, beyond the first couple of arguments you should always use matching by name. It makes your code much easier for you and others to read. This is particularly important if the argument is optional, because it has a default. When overriding a default value, it's good practice to use the name.
+
+Notice that when you call a function, you should place a space around = in function calls, and always put a space after a comma, not before (just like in regular English). Using whitespace makes it easier to skim the function for the important components. 
+
+ 
+ In R 
+ > args(sd)
+ # output specifies arguments in function.
+ > args(sd)
+function (x, na.rm = FALSE) 
+
+-----------------------------------------------------------------------------------------
+*** SCOPING ***
+scoping decribes how R looks up values by name. It's important to nderstand so that you can reason about functions without running them.
+
+If a name isn't defined in the current environment it looks in the next level up.
+Scoping describes where, not when, to look for a variable.
+
+example:
+m<- function() {
+	l<-function(x) x * 2
+	l(10)
+}
+
+In l(10) l looks for 10 and returns 20
+
+ SCOPING ORDER
+1. When you call a function, a new environment is made for the function to do its work.
+2. The new environment is populated with the argument values 
+3. Objects are looked for in this environment.
+4. If they are not found, they are looked for in the environment that the function was created in.
+
+example:
+y <- 10
+f <- function(x) {
+  y <- 5
+  x + y
+}
+ As new environment made and is populated with the argument values of y=5. If y was not specified scoping would result in looking for the values of y outside the function.
+
+-----------------------------------------------------------------------------------------
+
+BEING ABLE TO REASON ABOUT A FUNCTION WITHOUT RUNNING IT IS AN IMPORTANT SKILL FOR PROGRAMMERS.
+
+-----------------------------------------------------------------------------------------
+
+*** DATA STRUCTURES ***
+
+
+subsetting lists
+see slides doc (excellent)
+
+-----------------------------------------------------------------------------------------
+
+FUNCTION: SEQUENCE, BODY AND OUTPUT
+
+1. SEQUENCE:
+A safer way to create the sequence
+100xp
+Let's take a look at the sequence component of our for loop:
+
+i in 1:ncol(df)
+Each time our for loop iterates, i takes the next value in 1:ncol(df). This is a pretty common model for a sequence: a sequence of consecutive integers designed to index over one dimension of our data.
+
+What might surprise you is that this isn't the best way to generate such a sequence, especially when you are using for loops inside your own functions. Let's look at an example where df is an empty data frame:
+
+df <- data.frame()
+1:ncol(df)
+
+for (i in 1:ncol(df)) {
+  print(median(df[[i]]))
+}
+
+Our sequence is now the somewhat non-sensical: 1, 0. You might think you wouldn't be silly enough to use a for loop with an empty data frame, but once you start writing your own functions, there's no telling what the input will be.
+
+A better method is to use the seq_along() function. This function generates a sequence along the index of the object passed to it, but handles the empty case much better.
+
+EXAMPLE using 'seq_along(df)'
+
+df <- data.frame()
+
+for (i in seq_along(df)) {
+  print(median(df[[i]]))
+}
+
+KEEPING OUTPUT
+
+Our for loop does a good job displaying the column medians, but we might want to store these medians in a vector for future use.
+
+Before you start the loop, you must always allocate sufficient space for the output, let's say an object called output. This is very important for efficiency: if you grow the for loop at each iteration (e.g. using c()), your for loop will be very slow.
+
+A general way of creating an empty vector of given length is the vector() function. It has two arguments: the type of the vector ("logical", "integer", "double", "character", etc.) and the length of the vector.
+
+Then, at each iteration of the loop you must store the output in the corresponding entry of the output vector, i.e. assign the result to output[[i]]. (You might ask why we are using double brackets here when output is a vector. It's primarily for generalizability: this subsetting will work whether output is a vector or a list.)
+
+Let's edit our loop to store the medians, rather than printing them to the console.
+
+Example:
+
+# Create new double vector: output
+output <- vector("double", ncol(df))
+
+# Alter the loop
+for (i in seq_along(df)) {
+  # Change code to store result in output
+  output[[i]] <- median(df[[i]])
+}
+
+# Print output
+output 
+
+-----------------------------------------------------------------------------------------
+Chpt 2 WHEN SHOULD YOU WRITE A FUNCTION
+
+
+Writing your own functions is one way to reduce duplication in your code. In this chapter, you'll learn when to write a function, how to get started and what to keep in mind when you are writing. You'll also learn to appreciate that functions have two audiences: the computer (which runs the code) and humans (who need to be able to understand the code).
+
+-----------------------------------------------------------------------------------------
+
+If you have copied and pasted a line twice it's time to write a function.
+Doing so:
+-  reduces mistakes and 
+-  makes updating code easier
+
+Convention:
+# It's quite common in R to refer to a vector of data simply as x (like in the mean function), so we will follow that convention here.
+# Reduce duplication
+
+Example:
+
+FROM:
+
+(x - min(x, na.rm = TRUE)) /
+  (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
+
+TO:
+# Define example vector x
+x <- 1:10 
+
+# Define rng
+rng <- range(x, na.rm = TRUE)
+
+# Rewrite this snippet to refer to the elements of rng
+(x - rng[1]) / 
+  (rng[2] - rng[1])
+
+note range(x) is 1,10
+rng[2] extracts the second figure of the vector which is the max.
+-------------
+
+What do you need to write a function? You need a name for the function, you need to know the arguments to the function, and you need code that forms the body of the function.
+
+We now have all these pieces ready to put together. It's time to write the function!
+
+Example:
+
+# Define example vector x
+x <- 1:10 
+
+# Use the function template to create the rescale01 function
+rescale01 <- function(x) {
+  # body
+  rng <- range(x, na.rm = TRUE)
+  (x - rng[1]) / (rng[2] - rng[1])
+}
+
+# Test your function, call rescale01 using the vector x as the argument
+rescale01(x)
+
+-----------------------------------------------------------------------------------------
+
+WRITING A FUNCTION: THE FLOW & THE DISCIPLINE
+
+1. Start with a simple problem
+2. Get a working snippet of code
+3. Rewrite to use temporary variables. Here we examine the sinippet to decide what the   inputs should be.
+4. Rewrite for clarity and to reduce duplication
+5. Finally turn it into a function.
+
+-----------------------------------------------------------------------------------------
+
+Start with a simple problem
+
+Let's tackle a new problem. We want to write a function, both_na() that counts at how many positions two vectors, x and y, both have a missing value.
+
+How NOT to get started? Should we start writing our function? NO,NO,NO!!!
+
+both_na <- function(x, y) {
+  # something goes here?
+}
+
+No! We should start by solving a simple example problem first. Let's define an x and y where we know what the answer both_na(x, y) should be.
+
+Let's start with:
+
+x <- c( 1, 2, NA, 3, NA)
+y <- c(NA, 3, NA, 3,  4)
+Then both_na(x, y) should return 1, since there is only one element that is missing in both x and y, the third element.
+
+(Notice we introduced a couple of extra spaces to each vector. Adding spaces to x and y to make them match up makes it much easier to see what the correct result is. Code formatting is an important aspect of writing clear code.)
+
+# Define example vectors x and y
+x <- c( 1, 2, NA, 3, NA)
+y <- c(NA, 3, NA, 3,  4)
+
+# Count how many elements are missing in both x and y
+sum(is.na(x) & is.na(y))
+[1] 1
+-----
+
+You've already figured out it should have two inputs (the two vectors to compare) and we've even given them reasonable names: x and y. Our snippet is also so simple we can't write it any clearer.
+
+So, let's go ahead and turn this snippet into a function!
+
+# Define example vectors x and y
+    x <- c( 1, 2, NA, 3, NA)
+    y <- c(NA, 3, NA, 3,  4)
+
+# Turn this snippet into a function: both_na()
+
+  both_na<- function(x,y) {
+        sum(is.na(x) & is.na(y))
+        }
+-----
+We have a function that works in at least one situation, but we should probably check it works in others.
+-----------------------------------------------------------------------------------------
+See hand notes
+
+-----------------------------------------------------------------------------------------
+
+CREATE INTUITIVE ARGUMENTS
+
+RETURN statements
+
+One of your collegues has noticed if you pass mean_ci() an empty vector it returns a confidence interval with missing values at both ends (try it: mean_ci(numeric(0))). In this case, they decided it would make more sense to produce a warning "x was empty" and return c(-Inf, Inf) and have edited the function to be:
+
+mean_ci <- function(x, level = 0.95) {
+  if (length(x) == 0) {
+    warning("`x` was empty", call. = FALSE)
+    interval <- c(-Inf, Inf)
+  } else { 
+    se <- sd(x) / sqrt(length(x))
+    alpha <- 1 - level
+    interval <- mean(x) + 
+      se * qnorm(c(alpha / 2, 1 - alpha / 2))
+  }
+  interval
+}
+Notice how hard it is now to follow the logic of the function. If you want to know what happens in the empty x case, you need to read the entire function to check if anything happens to interval before the function returns. There isn't much to read in this case, but if this was a longer function you might be scrolling through pages of code.
+
+This is a case where an early return() makes sense. If x is empty, the function should immediately return c(-Inf, Inf).
+
+example
+
+# Improve the above mean_ci function
+
+mean_ci <- function(x, level = 0.95) {
+  if (length(x) == 0) {
+        warning("`x` was empty", call. = FALSE)
+        return(c(-Inf, Inf))
+      
+  } else {
+  se <- sd(x) / sqrt(length(x))
+  alpha <- 1 - level
+  mean(x) + se * qnorm(c(alpha / 2, 1 - alpha / 2))
+}
+}
+
+mean_ci(numeric(0))
+
+-----------------------------------------------------------------------------------------
+
+Example of a good function
+
+replace_missings <- function(x, replacement) {
+  x[is.na(x)] <- replacement
+  cat(sum(is.na(x)), replacement, "\n")
+  x
+}
+
+--------
+Replace missing values with 0 in df$z
+
+df$z <- replace_missings(df$z, replacement = 0)
+
+--------
+note function: "cat"
+ref: http://rfunction.com/archives/1866
+
+cat(…, file=”", sep=” “, append=FALSE)
+
+Definition and use
+Print output to the screen or to a file. Use cat to print information to an end-user from a function. cat is also useful for writing information that is being processed or generated, one or more lines at a time, to a file.
+… – The information to be printed to the screen or saved to a file.
+file – An optional argument that specifies a file to be created, overwritten, or appended.
+sep – Specifies what separates the objects in … that are to be printed.
+append – If a file is specified, then indicate whether to append to the content in the existing file (the default is not to append, which means to overwrite the existing content).
+
+Example. Below are several simple examples of using cat, followed by examples leading up to writing information into a file. 
+  # To use a tab separator, use "\t", and 
+  # Use "\n" to create a line break.
+--------
+
+NOW MAKE THE BODY MORE UNDERSTANDABLE
+
+Great! Now when someone comes across
+
+df$z <- replace_missings(df$z, replacement = 0)
+in your code, it's pretty obvious what you are trying to achieve. The body of our replace_missings() function is still a little messy. There is certainly some unnecessary duplication.
+
+replace_missings <- function(x, replacement) {
+  # Define is_miss
+  is_miss <- is.na(x)
+  
+  # Rewrite rest of function to refer to is_miss
+  x[is_miss] <- replacement
+  cat(sum(is_miss), replacement, "\n")
+  x
+}
+
+MUCH BETTER! BUT DO A FEW MORE TWEAKS...
+
+Did you notice replace_missings() prints some output to the console? Try it:
+
+replace_missings(df$z, replacement = 0)
+That output isn't exactly self-explanatory. It would be much nicer to say "2 missing values replaced by the value 0".
+
+It is also bad practice to use cat() for anything other than a print() method (a function designed just to display output). Having an important message just print to the screen makes it very hard for other people who might be programming with your function to capture the output and handle it appropriately.
+
+The official R way to supply simple diagnostic information is the message() function. The unnamed arguments are pasted together with no separator (and no need for a newline at the end) and by default are printed to the screen.
+
+Let's make our function nicer for users by using message() and making the output self-contained.
+
+replace_missings <- function(x, replacement) {
+  is_miss <- is.na(x)
+  x[is_miss] <- replacement
+  
+  # Rewrite to use message()
+  message("sum(is_miss) replaced by the value replacement.")
+  x
+}
+--------
+OUTPUT:
+> replace_missings(df$z, replacement=0)
+
+sum(is_miss) replaced by the value replacement.
+ [1]  0.0000000 -0.2931882 -0.1412670  2.0152653  0.0000000 -0.6328892
+ [7]  1.8221820  2.8840054 -0.4764604  0.9014344
+
+ 
+
+
+
+
+

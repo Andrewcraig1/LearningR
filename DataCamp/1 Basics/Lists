@@ -1,0 +1,113 @@
+## Lists
+
+1. Lists, why would you need them? (2)
+
+A list in R is similar to your to-do list at work or school: the different items on that list most likely differ in length, characteristic, type of activity that has to do be done, …
+
+A list in R allows you to gather a variety of objects under one name (that is, the name of the list) in an ordered way. These objects can be matrices, vectors, data frames, even other lists, etc. It is not even required that these objects are related to each other in any way.
+
+You could say that a list is some kind super data type: you can store practically any piece of information in it!
+
+2. Creating a list
+
+Let us create our first list! To construct a list you use the function list():
+
+my_list <- list(comp1, comp2 ...)
+The arguments to the list function are the list components. Remember, these components can be matrices, vectors, other lists, …
+
+Example:
+# Vector with numerics from 1 up to 10
+my_vector <- 1:10 
+
+# Matrix with numerics from 1 up to 9
+my_matrix <- matrix(1:9, ncol = 3)
+
+# First 10 elements of the built-in data frame mtcars
+my_df <- mtcars[1:10,]
+
+# Construct list with these different elements:
+my_list <- list(my_vector,my_matrix,my_df)
+my_list
+
+3. Creating a named list
+
+Well done, you're on a roll!
+
+Just like on your to-do list, you want to avoid not knowing or remembering what the components of your list stand for. That is why you should give names to them:
+
+my_list <- list(name1 = your_comp1, 
+                name2 = your_comp2)
+This creates a list with components that are named name1, name2, and so on. If you want to name your lists after you've created them, you can use the names() function as you did with vectors. The following commands are fully equivalent to the assignment above:
+
+my_list <- list(your_comp1, your_comp2)
+names(my_list) <- c("name1", "name2")
+
+Example:
+# my_list() 
+my_list <- list(my_vector, my_matrix, my_df)
+
+# Adapt list()  to give each components names
+my_list <- list("vec"=my_vector, "mat"=my_matrix, "df"=my_df)
+
+> str(my_list)
+List of 3
+ $ vec: int [1:10] 1 2 3 4 5 6 7 8 9 10
+ $ mat: int [1:3, 1:3] 1 2 3 4 5 6 7 8 9
+ $ df :'data.frame':	10 obs. of  11 variables:
+  ..$ mpg : num [1:10] 21 21 22.8 21.4 18.7 18.1 14.3 24.4 22.8 19.2
+  ..$ cyl : num [1:10] 6 6 4 6 8 6 8 4 4 6
+  ..$ disp: num [1:10] 160 160 108 258 360 ...
+  ..$ hp  : num [1:10] 110 110 93 110 175 105 245 62 95 123
+  ..$ drat: num [1:10] 3.9 3.9 3.85 3.08 3.15 2.76 3.21 3.69 3.92 3.92
+  ..$ wt  : num [1:10] 2.62 2.88 2.32 3.21 3.44 ...
+  ..$ qsec: num [1:10] 16.5 17 18.6 19.4 17 ...
+  ..$ vs  : num [1:10] 0 0 1 1 0 1 0 1 1 1
+  ..$ am  : num [1:10] 1 1 1 0 0 0 0 0 0 0
+  ..$ gear: num [1:10] 4 4 4 3 3 3 3 4 4 4
+  ..$ carb: num [1:10] 4 4 1 1 2 1 4 2 2 4
+  
+  
+  4. Selecting elements from a list
+
+Your list will often be built out of numerous elements and components. Therefore, getting a single element, multiple elements, or a component out of it is not always straightforward.
+
+One way to select a component is using the numbered position of that component. For example, to "grab" the first component of shining_list you type
+
+shining_list[[1]]
+
+A quick way to check this out is typing it in the console. Important to remember: to select elements from vectors, you use single square brackets: [ ]. Don't mix them up!
+
+You can also refer to the names of the components, with [[ ]] or with the $ sign. Both will select the data frame representing the reviews:
+
+shining_list[["reviews"]]
+shining_list$reviews
+Besides selecting components, you often need to select specific elements out of these components. For example, with shining_list[[2]][1] you select from the second component, actors (shining_list[[2]]), the first element ([1]). When you type this in the console, you will see the answer is Jack Nicholson.
+
+Example:
+#Str of shining_list
+> str(shining_list)
+List of 3
+ $ moviename: chr "The Shining"
+ $ actors   : chr [1:5] "Jack Nicholson" "Shelley Duvall" "Danny Lloyd" "Scatman Crothers" ...
+ $ reviews  :'data.frame':	3 obs. of  3 variables:
+  ..$ scores  : num [1:3] 4.5 4 5
+  ..$ sources : Factor w/ 3 levels "IMDb1","IMDb2",..: 1 2 3
+  ..$ comments: Factor w/ 3 levels "A masterpiece of psychological horror",..: 3 2 1
+
+
+# Print out the vector representing the actors in list called "shining_list"" 
+shining_list$actors
+
+# Print the second element of the vector representing the actors
+shining_list$actors[2]
+
+5. Adding to the list
+# We forgot something; add the year to shining_list
+shining_list_full <- c(shining_list, "year"=1980)
+
+# Have a look at shining_list_full
+str(shining_list_full)
+
+
+
+

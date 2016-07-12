@@ -1,0 +1,211 @@
+Writing Functions
+_________________________________________________________________________
+Template using "function" argument:
+
+function_name<- function(arg1,arg2){
+        body
+}
+________________________________________________________________________
+
+Example: create function called triple the multiplies x*3
+
+triple<-function(x){
+        3*x
+}
+
+# Now test and use function:
+triple(6)
+output:
+> triple(6)
+[1] 18
+
+
+_________________________________________________________________________
+
+Example:
+
+math_magic<-function(a,b=1){
+        if(b==0){
+                return(0)
+        }
+        a*b +a/b
+}
+
+# Now test & use funtion
+> math_magic(4,0)
+[1] 0
+> math_magic(4)
+[1] 8
+> math_magic(4,3)
+[1] 13.33333
+_________________________________________________________________________
+
+There are situations in which your function does not require an input. Let's say you want to write a function that gives us the random outcome of throwing a fair dice:
+
+throw_dice <- function() {
+  number <- sample(1:6, size = 1)
+  number
+}
+
+throw_dice()
+
+_________________________________________________________________________
+Write your own function (3)
+
+Do you still remember the difference between an argument with and without default values? Have another look at the sd() function by typing ?sd in the console. The usage section shows the following information:
+
+sd(x, na.rm = FALSE)
+This tells us that x has to be defined for the sd() function to be called correctly, however, na.rm already has a default value. Not specifying this argument won't cause an error.
+
+You can define default argument values in your own R functions as well. You can use the following recipe to do so:
+
+my_fun <- function(arg1, arg2 = val2) {
+  body
+}
+The editor on the right already includes an extended version of the pow_two() function from before. Can you finish it?
+
+# Finish the pow_two() function
+pow_two <- function(x) {
+  y <- x ^ 2
+  print(paste(x, "to the power two equals", y))
+  return(y)
+}
+
+# Finished version
+pow_two <- function(x, print_info = TRUE) {
+  y <- x ^ 2
+  if (print_info) {
+    print(paste(x, "to the power two equals", y))
+  }
+  return(y)
+  }
+  ________________________________________________________________________
+  
+  Function scoping
+
+An issue that Filip did not discuss in the video is function scoping. It implies that variables that are defined inside a function are not accessible outside that function. Try the following code and see if you understand the results:
+
+pow_two <- function(x) {
+  y <- x ^ 2
+  return(y)
+}
+pow_two(4)
+y
+x
+y got defined inside the pow_two() function and therefore it is not accessible outside of that function. This is also true for the function's arguments of course - x in this case.
+________________________________________________________________________
+  
+  R passes arguments by value
+
+The title gives it away already: R passes arguments by value. What does this mean? Simply put, it means that an R function cannot change the variable that you input to that function. Let's look at a simple example (try it in the console):
+
+triple <- function(x) {
+  x <- 3*x
+  x
+}
+a <- 5
+triple(a)
+a
+Inside the triple() function, the argument x gets overwritten with its value times three. Afterwards this new x is returned. If you call this function with a variable a equal to 5, you obtain 15. But did the value of a change? If R were to pass a to triple() by reference, the override of the x inside the function would ripple through to the variable a, outside the function. However, R passes by value, so the R objects you pass to a function can never change unless you do an explicit assignment. a remains equal to 5, even after calling triple(a).
+
+Can you tell which one of the following statements is false about the following piece of code?
+
+increment <- function(x, inc = 1) {
+  x <- x + inc
+  x
+}
+count <- 5
+a <- increment(count, 2)
+b <- increment(count)
+
+
+________________________________________________________________________
+
+# The linkedin and facebook vectors have already been created for you
+
+# Define the interpret function
+interpret <- function(num_views) {
+  if (num_views > 15) {
+    print("You're popular!")
+    return(num_views)
+  } else {
+     print("Try to be more visible!")
+    return(0)
+  }
+}
+
+# Call the interpret function linkedin first vector position 
+# & facebook second vector position
+
+interpret(linkedin[1])
+interpret(facebook[2])
+
+Output:
+
+> interpret(linkedin[1])
+[1] "You're popular!"
+[1] 16
+> interpret(facebook[2])
+[1] "Try to be more visible!"
+[1] 0
+________________________________________________________________________
+Example writing a funtion using "for" loops to iterate over all  the vector values
+
+# The linkedin and facebook vectors have already been created for you
+linkedin <- c(16, 9, 13, 5, 2, 17, 14)
+facebook <- c(17, 7, 5, 16, 8, 13, 14)
+
+# The interpret() can be used inside interpret_all()
+interpret <- function(num_views) {
+  if (num_views > 15) {
+    print("You're popular!")
+    return(num_views)
+  } else {
+    print("Try to be more visible!")
+    return(0)
+  }
+}
+
+# Define the interpret_all() function
+# views: vector with data to interpret
+# return_sum: return total number of views on popular days?
+interpret_all <- function(views, return_sum = TRUE) {
+  count <- 0
+  
+  for (v in views) {
+    count <- count + interpret(v)
+  }
+  
+  if (return_sum) {
+    return(count)
+  } else {
+    return(NULL)
+  }
+}
+
+# Call the interpret_all() function on both linkedin and facebook
+interpret_all(linkedin)
+interpret_all(facebook)
+
+Output:
+> interpret_all(linkedin)
+[1] "You're popular!"
+[1] "Try to be more visible!"
+[1] "Try to be more visible!"
+[1] "Try to be more visible!"
+[1] "Try to be more visible!"
+[1] "You're popular!"
+[1] "Try to be more visible!"
+[1] 33
+> interpret_all(facebook)
+[1] "You're popular!"
+[1] "Try to be more visible!"
+[1] "Try to be more visible!"
+[1] "You're popular!"
+[1] "Try to be more visible!"
+[1] "Try to be more visible!"
+[1] "Try to be more visible!"
+[1] 33
+
+
+________________________________________________________________________

@@ -1,0 +1,26 @@
+Functions
+
+1. Understanding the order of function arguments)
+1.1 the following function "args" explains function
+args(sd)
+output
+function (x, na.rm = FALSE) 
+NULL
+
+argument names: "x"" and "na.rm=false""
+
+x is the values in the first position, 
+na.rm=FALSE is default.
+
+x specified by name
+second argument by position.
+
+If missing values specify "na.rm=TRUE""
+
+1.2 alternative functions for help
+?(sd)
+help(sd)
+
+
+
+

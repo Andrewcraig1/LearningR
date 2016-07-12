@@ -1,0 +1,59 @@
+Utility functions
+________________________________________________________________________________
+
+1. Data utility functions
+
+R features a bunch of functions to juggle around with data structures::
+
+seq(): Generate sequences, by specifying the from, to and by arguments.
+
+rep(): Replicate elements of vectors and lists.
+
+sort(): Sort a vector in ascending order. Works on numerics, but also on character strings and logicals.
+
+rev(): Reverse the elements in a data structures for which reversal is defined.
+
+str(): Display the structure of any R object.
+
+append(): Merge vectors or lists.
+
+is.*(): Check for the class of an R object.
+
+as.*(): Convert an R object from one class to another.
+
+unlist(): Flatten (possibly embedded) lists to produce a vector.
+________________________________________________________________________________
+2. grep and grepl
+
+2.1 search for patterns 
+
+In their most basic form, regular expressions can be used to see whether a pattern exists inside a character string or a vector of character strings. For this purpose, you can use:
+
+grepl(), which returns TRUE when a pattern is found in the corresponding character string.
+grep(), which returns a vector of indices of the character strings that contains the pattern.
+Both functions need a pattern and x argument, where pattern is the regular expression you want to match for, and the x argument is the character vector from which matches should be sought.
+
+In this and the following exercises, you'll be querying and manipulating a character vector of email addresses! The vector emails has already been defined in the editor on the right so you can begin with the instructions straight away!
+
+Example:
+# The emails vector has already been defined for you
+emails <- c("john.doe@ivyleague.edu", "education@world.gov", "dalai.lama@peace.org", 
+            "invalid.edu", "quant@bigdatacollege.edu", "cookie.monster@sesame.tv")
+
+# Use grepl() to match for "edu"
+
+grepl("edu", emails)
+output:
+> grepl("edu", emails)
+[1]  TRUE  TRUE FALSE  TRUE  TRUE FALSE
+
+> grep("edu", emails)
+[1] 1 2 4 5
+
+# Use grep() to match for "edu", save result to hits
+hits <- grep("edu", emails)
+
+# Subset emails using hits
+emails[hits]
+
+________________________________________________________________________________

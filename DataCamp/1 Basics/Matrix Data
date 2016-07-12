@@ -1,0 +1,145 @@
+1. What's a matrix data structure?
+
+In R, a matrix is a collection of elements of the same data type (numeric, character, or logical) arranged into a fixed number of rows and columns. Since you are only working with rows and columns, a matrix is called two-dimensional.
+
+You can construct a matrix in R with the matrix() function. Consider the following example:
+
+matrix(1:9, byrow = TRUE, nrow = 3)
+
+In the matrix() function:
+
+The first argument is the collection of elements that R will arrange into the rows and columns of the matrix. Here, we use 1:9 which is a shortcut for c(1, 2, 3, 4, 5, 6, 7, 8, 9).
+The argument byrow indicates that the matrix is filled by the rows. If we want the matrix to be filled by the columns, we just place byrow = FALSE.
+The third argument nrow indicates that the matrix should have three rows.
+
+2. Example using vectors 
+
+# Box office Star Wars (in millions!)
+new_hope <- c(460.998, 314.4)
+empire_strikes <- c(290.475, 247.900)
+return_jedi <- c(309.306, 165.8)
+
+# Create box_office
+box_office <- c(new_hope,empire_strikes,return_jedi)
+
+# Construct star_wars_matrix
+star_wars_matrix <- matrix(box_office, byrow = TRUE, nrow = 3)
+star_wars_matrix 
+
+3. Naming headers and rows
+Similar to vectors, you can add names for the rows and the columns of a matrix
+
+rownames(my_matrix) <- row_names_vector
+colnames(my_matrix) <- col_names_vector
+
+Example:
+# Box office Star Wars (in millions!)
+new_hope <- c(460.998, 314.4)
+empire_strikes <- c(290.475, 247.900)
+return_jedi <- c(309.306, 165.8)
+
+# Construct matrix
+star_wars_matrix <- matrix(c(new_hope, empire_strikes, return_jedi), nrow = 3, byrow = TRUE)
+
+# Vectors region and titles, used for naming
+region <- c("US", "non-US")
+titles <- c("A New Hope", "The Empire Strikes Back", "Return of the Jedi")
+
+# Name the columns with region
+colnames(star_wars_matrix)<-region
+
+
+# Name the rows with titles
+rownames(star_wars_matrix)<-titles
+
+# Print out star_wars_matrix
+star_wars_matrix
+
+> star_wars_matrix
+                             US non-US
+A New Hope              460.998  314.4
+The Empire Strikes Back 290.475  247.9
+Return of the Jedi      309.306  165.8
+
+
+4. Calculate Row Sums as a vector
+# Construct star_wars_matrix
+box_office <- c(460.998, 314.4, 290.475, 247.900, 309.306, 165.8)
+star_wars_matrix <- matrix(box_office, nrow = 3, byrow = TRUE,
+                           dimnames = list(c("A New Hope", "The Empire Strikes Back", 
+                           "Return of the Jedi"), c("US", "non-US")))
+
+# Calculate worldwide box office figures
+worldwide_vector <- rowSums(star_wars_matrix)
+worldwide_vector
+> worldwide_vector
+             A New Hope The Empire Strikes Back      Return of the Jedi 
+                775.398                 538.375                 475.106
+                
+5. Adding a column for the Worldwide box office: "cbind"
+
+In the previous exercise you calculated the vector that contained the worldwide box office receipt for each of the three Star Wars movies. However, this vector is not yet part of star_wars_matrix.
+
+You can add a column or multiple columns to a matrix with the cbind() function, which merges matrices and/or vectors together by column. For example:
+
+big_matrix <- cbind(matrix1, matrix2, vector1 ...)   
+
+Example
+# Construct star_wars_matrix
+box_office <- c(460.998, 314.4, 290.475, 247.900, 309.306, 165.8)
+star_wars_matrix <- matrix(box_office, nrow = 3, byrow = TRUE,
+                           dimnames = list(c("A New Hope", "The Empire Strikes Back", 
+                           "Return of the Jedi"), c("US", "non-US")))
+
+# The worldwide box office figures
+worldwide_vector <- rowSums(star_wars_matrix)
+
+# Bind the new variable worldwide_vector as a column to star_wars_matrix
+all_wars_matrix <- cbind(star_wars_matrix ,worldwide_vector)
+all_wars_matrix
+
+6. Adding a row: "rbind""
+
+Just like every action has a reaction, every cbind() has an rbind(). (We admit, we are pretty bad with metaphors.)
+
+Your R workspace, where all variables you defined 'live' (check out what a workspace is), has already been initialized and contains two matrices:
+
+star_wars_matrix that we have used all along, with data on the first trilogy,
+star_wars_matrix2, with similar data for the second trilogy.
+Type the name of these matrices in the console and hit Enter if you want to have a closer look. If you want to check out the contents of the workspace, you can type ls() in the console.
+
+Example:
+# star_wars_matrix and star_wars_matrix2 are available in your workspace
+star_wars_matrix  
+star_wars_matrix2 
+
+# Combine both Star Wars trilogies in one matrix
+all_wars_matrix <- rbind(star_wars_matrix,star_wars_matrix2)
+all_wars_matrix 
+
+7. "colSums"" and "rowSums""
+
+Just like every cbind() has a rbind(), every colSums() has a rowSums(). Your R workspace already contains the all_wars_matrix that you constructed in the previous exercise; type all_wars_matrix to have another look. Let's now calculate the total box office revenue for the entire saga.
+
+8. Selection of matrix elements [1,2] or[,1] etc
+
+Similar to vectors, you can use the square brackets [ ] to select one or multiple elements from a matrix. Whereas vectors have one dimension, matrices have two dimensions. You should therefore use a comma to separate that what to select from the rows from that what you want to select from the columns. For example:
+
+my_matrix[1,2] selects the element at the first row and second column.
+my_matrix[1:3,2:4] results in a matrix with the data on the rows 1, 2, 3 and columns 2, 3, 4.
+If you want to select all elements of a row or a column, no number is needed before or after the comma, respectively:
+
+my_matrix[,1] selects all elements of the first column.
+my_matrix[1,] selects all elements of the first row.
+
+9. A little arithmetic with matrices
+
+Similar to what you have learned with vectors, the standard operators like +, -, /, *, etc. work in an element-wise way on matrices in R.
+
+For example, 2 * my_matrix multiplies each element of my_matrix by two.
+
+Just like 2 * my_matrix multiplied every element of my_matrix by two, my_matrix1 * my_matrix2 creates a matrix where each element is the product of the corresponding elements in my_matrix1 and my_matrix2.
+
+Those who are familiar with matrices should note that this is not the standard matrix multiplication for which you should use %*% in R.
+
+

@@ -1,0 +1,69 @@
+### Conditional statements "if" and "else" and "else if"
+## "if statement". If the condition is TRUE then R code {expression} associated with the if statement
+# is executed.
+
+# We can extend the argument with "else" which if the condition is FALSE then associated expression is executed.
+
+#if (condition) { expression
+#} else { expression
+}
+
+#Example
+x<- 5
+
+if (x<0) {
+        print( "x is a negative number")
+} else { "x is either a positive number or zero"}
+
+### "if else" comes in between the "if" and "else" statements
+
+#  if (condition1) {expression1
+#  } else if (condition2) {
+#  expression2
+#  } else{
+#   expression3
+#}
+
+# It's important that the else keyword comes on the same line as the closing bracket of the if part!
+
+# Example
+ if(x<0) {
+         print("x is a negative number")
+ } else if(x==0){
+         print("x is zero")
+ } else {
+         print("x is a positive number")
+ }
+
+##The else if statement allows you to further customize your control structure. 
+# You can add as many else if statements as you like. Keep in mind that R ignores the remainder of the control structure once a condition has been found that is TRUE and the corresponding expressions have been executed. Here's an overview of the syntax to freshen your memory:
+
+# if (condition1) {
+#        expr1
+# } else if (condition2) {
+#        expr2
+# } else if (condition3) {
+#        expr3
+# } else {
+#        expr4
+#}
+# Again, It's important that the else if keywords comes on the same line as the 
+# closing bracket of the previous part of the control construct!
+
+
+
+You can do anything you want inside if-else constructs. You can even put in another set of conditional statements. Examine the following code chunk:
+
+if (number < 10) {
+  if (number < 5) {
+    result <- "extra small"
+  } else {
+    result <- "small"
+  }
+} else if (number < 100) {
+  result <- "medium"
+} else {
+  result <- "large"
+}
+print(result)
+

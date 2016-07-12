@@ -1,0 +1,175 @@
+1. Arithetic, 2. Basic Data Types, 3. Data Structures  4. combine function c(), 5. Factors, 6. Ordered Factors, 7.Create Data frame & Selection of data frame elements 8. Data frame: subset, 9. Data frame: sort
+
+1.Arithmetic with R
+
+In its most basic form, R can be used as a simple calculator. Consider the following arithmetic operators:
+
+Addition: +
+Subtraction: -
+Multiplication: *
+Division: /
+Exponentiation: ^
+Modulo: %%
+The last two might need some explaining:
+
+The ^ operator raises the number to its left to the power of the number to its right: for example 3^2 is 9.
+The modulo returns the remainder of the division of the number to the left by the number on its right, for example 5 modulo 3 or 5 %% 3 is 2.
+
+
+
+Modulus
+In computing, the modulo operation finds the remainder after division of one number by another (sometimes called modulus).
+
+Refer p 123 "Modular Arithmetic" - Mathematics from the birth of numbers.
+
+2. Basic data types in R
+
+R works with numerous data types. Some of the most basic types to get started are:
+
+Decimals values like 4.5 are called numerics.
+Natural numbers like 4 are called integers. Integers are also numerics.
+Boolean values (TRUE or FALSE) are called logical.
+Text (or string) values are called characters.
+Note how the quotation marks on the right indicate that "some text" is a character.
+
+
+3. Data structures
+
+# Vectors (one dimensional array): can hold numeric, character or logical values. The elements in a vector all have the same data type.
+
+# Matrices (two dimensional array): can hold numeric, character or logical values. The elements in a matrix all have the same data type.
+
+# Data frames (two-dimensional objects): can hold numeric, character or logical values. Within a column all elements have the same data type, but different columns can be of different data type.
+
+4. # In R, you create a vector with the combine function c(). 
+
+5. Factors
+Factor levels
+100xp
+When you first get a data set, you will often notice that it contains factors with specific factor levels. However, sometimes you will want to change the names of these levels for clarity or other reasons. R allows you to do this with the function levels():
+
+levels(factor_vector) <- c("name1", "name2",...)
+A good illustration is the raw data that is provided to you by a survey. A standard question for every questionnaire is the gender of the respondent. You remember from the previous question that this is a factor and when performing the questionnaire on the streets its levels are often coded as "M" and "F".
+
+survey_vector <- c("M", "F", "F", "M", "M")
+Next, when you want to start your data analysis, your main concern is to keep a nice overview of all the variables and what they mean. At that point, you will often want to change the factor levels to "Male" and "Female" instead of "M" and "F" to make your life easier.
+
+Watch out: the order with which you assign the levels is important. If you type levels(factor_survey_vector), you'll see that it outputs [1] "F" "M". If you don't specify the levels of the factor when creating the vector, R will automatically assign them alphabetically. To correctly map "F" to "Female" and "M" to "Male", the levels should be set to c("Female", "Male"), in this order order.
+
+Example
+# Code to build factor_survey_vector
+> survey_vector <- c("M", "F", "F", "M", "M")
+> factor_survey_vector <- factor(survey_vector)
+> survey_vector
+[1] "M" "F" "F" "M" "M"
+> factor_survey_vector 
+[1] M F F M M
+Levels: F M
+# Specify the levels of factor_survey_vector
+> levels(factor_survey_vector) <- c("Female","Male")
+> factor_survey_vector
+[1] Male   Female Female Male   Male  
+Levels: Female Male
+
+6. Ordered factors
+
+The speed_vector should be converted to an ordinal factor since its categories have a natural ordering. By default, the function factor() transforms speed_vector into an unordered factor. To create an ordered factor, you have to add two additional arguments: ordered and levels.
+
+factor(some_vector, 
+       ordered = TRUE, 
+       levels = c("lev1", "lev2" ...))
+By setting the argument ordered to TRUE in the function factor(), you indicate that the factor is ordered. With the argument levels you give the values of the factor in the correct order.
+
+Example
+# Create speed_vector
+speed_vector <- c("fast", "slow", "slow", "fast", "insane") 
+
+# Convert speed_vector to ordered factor vector
+factor_speed_vector <- factor(speed_vector, ordered = TRUE, 
+    levels=c("slow","fast","insane"))
+
+# Print factor_speed_vector
+factor_speed_vector
+summary(factor_speed_vector) 
+
+> factor_speed_vector
+[1] fast   slow   slow   fast   insane
+Levels: slow < fast < insane
+
+> summary(factor_speed_vector) 
+  slow   fast insane 
+     2      2      1
+     
+7. Create Data frame: Selection of data frame elements (
+
+7.1 # Create a data frame from the vectors
+planets_df <-data.frame(name, type, diameter, rotation, rings)
+str(planets_df)
+
+7.2 #Instead of using numerics to select elements of a data frame, you can also use the variable names to select columns of a data frame.
+
+Suppose you want to select the first three elements of the type column. One way to do this is
+
+planets_df[1:3,1]
+A possible disadvantage of this approach is that you have to know (or look up) the column number of type, which gets hard if you have a lot of variables. It is often easier to just make use of the variable name:
+
+planets_df[1:3,"type"]
+
+7.3 Select an entire column
+You will often want to select an entire column, namely one specific variable from a data frame. If you want to select all elements of the variable diameter, for example, both of these will do the trick:
+
+planets_df[,3]
+planets_df[,"diameter"]
+However, there is a short-cut. If your columns have names, you can use the $ sign:
+
+planets_df$diameter
+
+8. Subset Dataframe
+
+subset(mydata, some_condition)
+
+Example:
+subset(planets_df, diameter < 1)
+
+9. Sorting
+9.1 sorting a vector
+Example
+> a <- c(100, 10, 1000)
+> order(a)
+[1] 2 1 3
+> a[order(a)]
+[1]   10  100 1000
+> # Play around with the order function in the console
+> a_ordered<-a[order(a)]
+> a_ordered
+[1]   10  100 1000
+
+9.2 sorting a data frame
+
+Sorting your data frame
+
+Alright, now that you understand the order() function, let us do something useful with it. You would like to rearrange your data frame such that it starts with the smallest planet and ends with the largest one. A sort on the diameter column.
+
+Example:
+# "planets_df"" is the dataframe containing a variable "diameter" of each planet
+
+# Use order() to create positions
+positions <- order(planets_df$diameter)
+
+>positions
+[1] 1 4 2 3 8 7 6 5
+
+# Use positions to sort planets_df
+planets_df[positions, ]
+
+> planets_df[positions, ]
+     name               type diameter rotation rings
+1 Mercury Terrestrial planet    0.382    58.64 FALSE
+4    Mars Terrestrial planet    0.532     1.03 FALSE
+2   Venus Terrestrial planet    0.949  -243.02 FALSE
+3   Earth Terrestrial planet    1.000     1.00 FALSE
+8 Neptune          Gas giant    3.883     0.67  TRUE
+7  Uranus          Gas giant    4.007    -0.72  TRUE
+6  Saturn          Gas giant    9.449     0.43  TRUE
+5 Jupiter          Gas giant   11.209     0.41  TRUE
+
