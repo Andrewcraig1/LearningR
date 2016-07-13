@@ -1,0 +1,625 @@
+### Recitaion transcript and my notes
+---------------------------------------------------------------------------------
+Data Variables
+•  Each entry corresponds to a census tract, a statistical division of the area that is used by researchers to break down towns and cities.
+•  There will usually be multiple census tracts per town.
+•  LON and LAT are the longitude and latitude of thecenter of the census tract.
+•  MEDV is the median value of owner-occupied homes, in thousands of dollars.
+•   CRIM is the per capita crime rate
+•  ZN is related to how much of the land is zoned for large residential properties
+•  INDUS is proportion of area used for industry
+•  CHASis1ifthecensustractisnexttotheCharles River
+•  NOXistheconcentrationofnitrousoxidesintheair
+•  RMistheaveragenumberofroomsperdwelling
+•  AGE is the proportion of owner-occupied units built before 1940
+•  DIS is a measure of how far the tract is from centers of employment in Boston
+•  RADisameasureofclosenesstoimportant highways
+•  TAXisthepropertytaxrateper$10,000ofvalue
+•  PTRATIO is the pupil-teacher ratio by town
+•  “cp”standsfor“complexityparameter”
+---------------------------------------------------------------------------------
+# plot and points command
+So to put points on an already-existing plot,
+we can use the points command, which
+looks very similar to the plot command,
+except it operates on a plot that already exists.
+So let's plot just the points where the Charles River
+variable is set to one.
+Up to now it looks pretty much like the plot command,
+but here's where it's about to get interesting.
+We can pass a color, such as blue,
+to plot all these points in blue.
+And this would plot blue hollow circles
+on top of the black hollow circles.
+Which would look all right, but I
+think I'd much prefer to have solid blue dots.
+To control how the points are plotted,
+we use the pch option, which you can read about more in the help
+documentation for the points command.
+But I'm going to use pch 19, which
+is a solid version of the dots we already have on our plot.
+So by running this command, you see
+we have some blue dots in our plot now.
+These are the census tracts that lie along the Charles River.
+
+---------------------------------------------------------------------------------
+Video 3: Geographical Predictions
+So, we saw in the previous video that the house prices
+were distributed over the area in an interesting way,
+certainly not the kind of linear way.
+And we wouldn't necessarily expect linear regression
+to do very well at predicting house price,
+just given latitude and longitude.
+We can kind of develop that intuition more
+by plotting the relationship between latitude and house
+prices-- which doesn't look very linear-- or the longitude
+and the house prices, which also looks pretty nonlinear.
+So, we'll try fitting a linear regression anyway.
+So, let's call it latlonlm.
+And we'll use the lm command, linear model,
+to predict house prices based on latitude and longitude using
+the boston data set.
+
+If we take a look at our linear regression,
+we see the R-squared is around 0.1, which is not great.
+The latitude is not significant, which
+means the north-south differences aren't
+going to be really used at all.
+Longitude is significant, and it's negative.
+Which we can interpret as, as we go towards the ocean--
+as we go towards the east-- house prices decrease linearly.
+So this all seems kind of unlikely,
+but let's work with it.
+So let's see how this linear regression
+model looks on a plot.
+So let's plot the census tracts again.
+OK.
+Now, remember before, we had-- from the previous video--
+we plotted the above-median house prices.
+So we're going to do that one more time.
+The median was 21.2.
+We had-- the color was red.
+And we used solid dots.
+Ha.
+Oops.
+See what I did there?
+I used the plot command, instead of the points command,
+and it plotted just the new points.
+I meant to plot the original points
+and use the points command to plot it
+on top of the existing plot.
+OK.
+So that's more like it.
+So now we have the median values with the above median value
+census tracts.
+So, OK, we want to see, now, the question
+we're going to ask, and then plot,
+is what does the linear regression model think is above median.
+So we could just do this pretty easily.
+We have latlonlm$fitted.values and this is what the linear
+regression model predicts for each of the 506 census tracts.
+So we'll plot these on top.
+boston$LON-- take all the census tracts,
+such that the latlonlm's fitted values are above the median.
+Take the latitudes, too.
+And I'm going to make them blue, but let's pause for a moment
+and think.
+If we use the dots again, we'll cover up the red dots
+and cover up some of the black dots.
+What we won't be able to see is where
+the red dots and the blue dots match up.
+You know, we're interested in seeing
+how the linear regression matches up with the truth.
+So it'd be ideal if we could plot
+the linear regression blue dots on top of the red dots,
+in some way that we can still see the red dots.
+It turns out that you can actually
+pass in characters to this PCH option.
+So since we're talking about money,
+let's plot dollar signs instead of points.
+And there you have it.
+So, the linear regression model has plotted a dollar sign
+for every time it thinks the census
+tract is above median value.
+And you can see that, indeed, it's
+almost as-- you can see the sharp line
+that the linear regression defines.
+And how it's pretty much vertical,
+because remember before, the latitude variable
+was not very significant in the regression.
+So that's interesting and pretty wrong.
+One thing that really stands out is
+how it says Boston is mostly above median.
+Even knowing-- we saw it right from the start--
+there's a big non-red spot, right
+in the middle of Boston, where the house
+prices were below the median.
+So the linear regression model isn't really doing a good job.
+And it's completely ignored everything
+to the right side of the picture.
+
+---------------------------------------------------------------------------------
+Video 4 Regression Trees
+
+Let's see how regression trees do.
+We'll first load the rpart library
+and also load the rpart plotting library.
+We build a regression tree in the same way
+we would build a classification tree, using the rpart command.
+We predict MEDV as a function of latitude and longitude,
+using the boston dataset.
+
+If we now plot the tree using the prp command, which
+is defined in rpart.plot, we can see it makes a lot of splits
+and is a little bit hard to interpret.
+But the important thing is to look at the leaves.
+
+In a classification tree, the leaves
+would be the classification we assign
+that these splits would apply to.
+
+### But in regression trees, we instead predict the number.
+That number is the average of the median house
+prices in that bucket or leaf.
+So let's see what that means in practice.
+So we'll plot again the latitude of the points.
+And we'll again plot the points with above median prices.
+I just scrolled up from my command history to do that.
+Now we want to predict what the tree thinks
+is above median, just like we did with linear regression.
+So we'll say the fitted values we
+can get from using the predict command on the tree we just
+built.
+And we can do another points command,
+just like we did before.
+
+The fitted values are greater than 21.2, the color is blue,
+and the character is a dollar sign.
+Now we see that we've done a much better job
+than linear regression was able to do.
+We've correctly left the low value area in Boston
+and below out, and we've correctly
+managed to classify some of those points
+in the bottom right and top right.
+
+We're still making mistakes, but we're
+able to make a nonlinear prediction
+on latitude and longitude.
+So that's interesting, but the tree was very complicated.
+So maybe it's drastically overfitting.
+Can we get most of this effect with a much simpler tree?
+We can.
+We would just change the minbucket size.
+So let's build a new tree using the rpart command again:
+MEDV as a function of LAT and LON, the data=boston.
+But this time we'll say the minbucket size must be 50.
+We'll use the other way of plotting trees, plot,
+and we'll add text to the text command.
+And we see we have far fewer splits,
+and it's far more interpretable.
+The first split says if the longitude
+is greater than or equal to negative 71.07--
+so if you're on the right side of the picture.
+So the left-hand branch is on the left-hand side
+of the picture and the right-hand--
+So the left-hand side of the tree
+corresponds to the right-hand side of the map.
+And the right side of the tree corresponds
+to the left side of the map.
+That's a little bit of a mouthful.
+Let's see what it means visually.
+So we'll remember these values, and we'll
+plot the longitude and latitude again.
+So here's our map.
+OK.
+So the first split was on longitude,
+and it was negative 71.07.
+So there's a very handy command, "abline,"
+which can plot horizontal or vertical lines easily.
+So we're going to plot a vertical line, so v,
+and we wanted to plot it at negative 71.07.
+OK.
+So that's that first split from the tree.
+It corresponds to being on either the left or right-hand
+side of this tree.
+We'll plot the-- what we want to do is, we'll focus on one area.
+We'll focus on the lowest price prediction, which
+is in the bottom left corner of the tree,
+right down at the bottom left after all those splits.
+So that's where we want to get to.
+So let's plot again the points.
+Plot a vertical line.
+The next split down towards that bottom left corner
+was a horizontal line at 42.21.
+So I put that in.
+That's interesting.
+So that line corresponds pretty much to where
+the Charles River was from before.
+The final split you need to get to that bottom left corner I
+was pointing out is 42.17.
+It was above this line.
+And now that's interesting.
+If we look at the right side of the middle of the three
+rectangles on the right side, that
+is the bucket we were predicting.
+And it corresponds to that rectangle, those areas.
+That's the South Boston low price area we saw before.
+So maybe we can make that more clear by plotting, now,
+the high value prices.
+So let's go back up to where we plotted all the red dots
+and overlay it.
+So this makes it even more clear.
+We've correctly shown how the regression tree carves out
+that rectangle in the bottom of Boston
+and says that is a low value area.
+So that's actually very interesting.
+It's shown us something that regression trees can
+do that we would never expect linear regression to be
+able to do.
+So the question we're going to answer in the next video
+is given that regression trees can do these fancy things
+with latitude and longitude, is it
+actually going to help us to be able to build a predictive model, predicting house prices?
+Well, we'll have to see.
+
+---------------------------------------------------------------------------------
+Video 5 Putting it all together
+
+
+In the previous video, we got a feel for how regression trees
+can do things linear regression cannot.
+But what really matters at the end of the day
+is whether it can predict things better than linear regression.
+And so let's try that right now.
+We're going to try to predict house prices using
+all the variables we have available to us.
+So we'll load the caTools library.
+That will help us do a split on the data.
+We'll set the seed so our results are reproducible.
+And we'll say our split will be on the Boston house prices
+and we'll split it 70% training, 30% test.
+So our training data is a subset of the boston data
+where the split is TRUE.
+And the testing data is the subset of the boston data
+where the split is FALSE.
+OK, first of all, let's make a linear regression model,
+nice and easy.
+
+It's a linear model and the variables
+are latitude, longitude, crime, zoning, industry, whether it's
+on the Charles River or not, air pollution, rooms, age,
+distance, another form of distance, tax rates,
+and the pupil-teacher ratio.
+The data is training data.
+
+OK, let's see what our linear regression looks like.
+
+lm(formula = MEDV ~ LAT + LON + CRIM + ZN + INDUS + CHAS + NOX + 
+    RM + AGE + DIS + RAD + TAX + PTRATIO, data = train)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-14.511  -2.712  -0.676   1.793  36.883 
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -2.523e+02  4.367e+02  -0.578   0.5638    
+LAT          1.544e+00  5.192e+00   0.297   0.7664    
+LON         -2.987e+00  4.786e+00  -0.624   0.5329    
+CRIM        -1.808e-01  4.390e-02  -4.118 4.77e-05 ***
+ZN           3.250e-02  1.877e-02   1.731   0.0843 .  
+INDUS       -4.297e-02  8.473e-02  -0.507   0.6124    
+CHAS         2.904e+00  1.220e+00   2.380   0.0178 *  
+NOX         -2.161e+01  5.414e+00  -3.992 7.98e-05 ***
+RM           6.284e+00  4.827e-01  13.019  < 2e-16 ***
+AGE         -4.430e-02  1.785e-02  -2.482   0.0135 *  
+DIS         -1.577e+00  2.842e-01  -5.551 5.63e-08 ***
+RAD          2.451e-01  9.728e-02   2.519   0.0122 *  
+TAX         -1.112e-02  5.452e-03  -2.040   0.0421 *  
+PTRATIO     -9.835e-01  1.939e-01  -5.072 6.38e-07 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 5.595 on 350 degrees of freedom
+Multiple R-squared:  0.665,	Adjusted R-squared:  0.6525 
+F-statistic: 53.43 on 13 and 350 DF,  p-value: < 2.2e-16
+
+
+
+So we see that the latitude and longitude are not
+significant for the linear regression, which is perhaps
+not surprising because linear regression didn't seem
+to be able to take advantage of them.
+Crime is very important.
+The residential zoning might be important.
+Whether it's on the Charles River
+or not is a useful factor.
+Air pollution does seem to matter--
+the coefficient is negative, as you'd expect.
+The average number of rooms is significant.
+The age is somewhat important.
+Distance to centers of employment (DIS),
+is very important.
+Distance to highways and tax is somewhat important,
+and the pupil-teacher ratio is also very significant.
+Some of these might be correlated,
+so we can't put too much stock in necessarily interpreting
+them directly, but it's interesting.
+The adjusted R squared is 0.65, which is pretty good.
+So because it's kind of hard to compare out
+of sample accuracy for regression,
+we need to think of how we're going to do that.
+With classification, we just say, this method got X% correct
+and this method got Y% correct.
+Well, since we're doing continuous variables,
+let's calculate the sum of squared error, which
+we discussed in the original linear regression video.
+So let's say the linear regression's predictions are
+predict(linreg, newdata=test) and the linear regression sum
+of squared errors is simply the sum of the predicted values
+versus the actual values squared.
+So let's see what that number is-- 3,037.008.
+OK, so you know what we're interested to see
+now is, can we beat this using regression trees?
+So let's build a tree.
+The tree -- rpart command again.
+Actually to save myself from typing it all up again,
+I'm going to go back to the regression command
+and just change "lm" to "rpart" and change
+"linreg" to "tree"-- much easier.
+All right.
+So we've built our tree-- let's have a look at it using
+the "prp" command from "rpart.plot."
+And here we go.
+
+### open U4 Recitation Regressiontree plot boston MDV.pdf
+
+So again, latitude and longitude aren't really important
+as far as the tree's concerned.
+The rooms are the most important split.
+Pollution appears in there twice, so it's, in some sense,
+nonlinear on the amount of pollution--
+if it's greater than a certain amount
+or less than a certain amount, it does different things.
+Crime is in there, age is in there.
+Room appears three times, actually-- sorry.
+That's interesting.
+
+So it's very nonlinear on the number of rooms.
+Things that were important for the linear regression that
+don't appear in ours include pupil-teacher ratio.
+The DIS variable doesn't appear in our regression tree at all,
+either.
+
+## So they're definitely doing different things,
+but how do they compare?
+
+So we'll predict, again, from the tree.
+"tree.pred" is the prediction of the tree on the new data.
+And the tree sum of squared errors
+is the sum of the tree's predictions
+versus what they really should be.
+And then the moment of truth-- 4,328.
+
+Regression result vs RegressionTree result for this problem
+
+So, simply put, regression trees are not as good
+as linear regression for this problem.
+What this says to us, given what we saw with the latitude
+and longitude, is that latitude and longitude are nowhere near
+as useful for predicting, apparently,
+as these other variables are.
+That's just the way it goes, I guess.
+It's always nice when a new method does better,
+but there's no guarantee that's going to happen.
+We need a special structure to really be useful.
+Let's stop here with the R and go back to the slides
+and discuss how CP works and then we'll
+apply cross validation to our tree.
+And we'll see if maybe we can improve in our results.
+
+Regression result vs RegressionTree result
+
+--------------------------------------------------------------------------------
+Video 6 The CP Parameter : Refer to slides 12-16
+
+
+The cp parameter-- cp stands for complexity parameter.
+
+Recall that the first tree we made
+using latitude and longitude only had many splits,
+but we were able to trim it without losing much accuracy.
+
+The intuition we gain is, having too many splits
+is bad for generalization-- that is, performance on the test
+set-- so we should penalize the complexity.
+
+Let us define RSS to be the residual sum of squares, also
+known as the sum of square differences.
+Our goal when building the tree is
+to minimize the RSS by making splits,
+but we want to penalize having too many splits now.
+Define S to be the number of splits,
+and lambda to be our penalty.
+Our new goal is to find a tree that
+minimizes the sum of the RSS at each leaf,
+plus lambda, times S, for the number of splits.
+Let us consider the following example.
+Here we have set lambda to be equal to 0.5.
+Initially, we have a tree with no splits.
+We simply take the average of the data.
+The RSS in this case is 5, thus our total penalty is also 5.
+If we make one split, we now have two leaves.
+At each of these leaves, say, we have an error, or RSS of 2.
+The total RSS error is then 2+2=4.
+And the total penalty is 4+0.5*1, the number of splits.
+Our total penalty in this case is 4.5.
+If we split again on one of our leaves,
+we now have a total of three leaves for two splits.
+The error at our left-most leaf is 1.
+The next leaf has an error of 0.8.
+And the next leaf has an error of 2, for a total error of 3.8.
+The total penalty is thus 3.8+0.5*2,
+for a total penalty of 4.8.
+Notice that if we pick a large value of lambda,
+we won't make many splits, because you
+pay a big price for every additional split that
+will outweigh the decrease in error.
+If we pick a small, or 0 value of lambda,
+it will make splits until it no longer decreases the error.
+You may be wondering at this point, the definition of cp
+is what, exactly?
+
+Well, it's very closely related to lambda.
+Considering a tree with no splits,
+we simply take the average of the data,
+calculate RSS for that so-called tree,
+and let us call that RSS for no splits.
+Then we can define cp=lambda/RSS(no splits).
+When you're actually using cp in your R code,
+you don't need to think exactly what it means-- just
+that small numbers of cp encourage large trees,
+and large values of cp encourage small trees.
+Let's go back to R now, and apply cross-validation
+to our training data.
+
+
+--------------------------------------------------------------------------------
+Video 7 Cross validation 
+
+
+OK, so now we know what CP is, we can go ahead and build
+one last tree using cross validation.
+So we need to make sure first we have the required
+libraries installed and in use.
+So the first package is the "caret" package.
+And the second one we need is the "e1071" package.
+OK.
+
+So we need to tell the caret package how exactly we
+want to do our parameter tuning.
+
+There are actually quite a few ways of doing it.
+But we're going to restrict ourselves in this course
+to just 10-fold cross validation,
+as was explained in the lecture.
+So let's say tr.control=trainControl(method="cv",
+number=10).
+OK, that was easy enough.
+
+Now we need to tell caret which range of cp parameters
+to try out.
+Now remember that cp varies between 0 and 1.
+
+It's likely for any given problem
+that we don't need to explore the whole range.
+I happen to know, by the fact that I
+made this presentation ahead of time, that the value of cp
+we're going to pick is very small.
+So what I want to do is make a grid of cp values to try.
+And it will be over the range of 0 to 0.01.
+OK, so how does what I wrote led to that?
+Well, 1 times 0.001 is obviously 0.001.
+And 10 times 0.001 is obviously 0.01.
+0 to 5, or 0 to 10, means the numbers
+0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10.
+So 0 to 10 times 0.001 is those numbers scaled by 0.001.
+So those are the values of cp that caret will try.
+So let's store the results of the cross validation fitting
+in a variable called tr.
+And we'll use the train function.
+Predicting MEDV based on LAT, LON, CRIM, zoning, industry,
+Charles River, pollution, rooms, age, distance,
+distance from highways, tax, and pupil-teacher ratio.
+OK, we're using the train data set.
+We're using trees (rpart), our train control
+is what we just made before, and our tuning grid
+is the other thing we just made, which we called cp.grid.
+And it whirrs away.
+And what its doing there is it's trying all the different values
+of cp that we asked it to.
+So we can see what it's done but typing tr.
+
+> tr
+CART 
+
+364 samples
+ 15 predictor
+
+No pre-processing
+Resampling: Cross-Validated (10 fold) 
+Summary of sample sizes: 328, 328, 327, 328, 328, 326, ... 
+Resampling results across tuning parameters:
+
+  cp     RMSE      Rsquared 
+  0.000  4.723213  0.7353872
+  0.001  4.720310  0.7354473
+  0.002  4.750171  0.7309340
+  0.003  4.759374  0.7275926
+  0.004  4.808418  0.7228980
+  0.005  4.877666  0.7175279
+  0.006  4.895142  0.7155786
+  0.007  4.929188  0.7115768
+  0.008  4.888316  0.7149006
+  0.009  4.888316  0.7149006
+  0.010  4.888316  0.7149006
+
+RMSE was used to select the optimal model using  the smallest value.
+The final value used for the model was cp = 0.001. 
+
+
+You can see it tried 11 different values of cp.
+And it decided that cp equals 0.001 was the best because it
+had the best RMSE-- Root Mean Square Error.
+And it was 5.03 for 0.001.
+You see that it's pretty insensitive to a particular value of cp.
+So it's maybe not too important.
+It's interesting though that the numbers are so low.
+I tried it for a much larger range of cp values,
+and the best solutions are always very close to 0.
+So it wants us to build a very detail-rich tree.
+So let's see what the tree that that value of cp corresponds to
+is.
+So we can get that from going best.tree=tr$finalModel.
+And we can plot that tree.
+So that's the model that corresponds to 0.001.
+Plot it.
+Wow, OK, so that's a very detailed tree.
+
+You can see that it looks pretty much like the same tree we
+had before, initially.
+But then it starts to get much more detailed at the bottom.
+And in fact if you can see close enough,
+there's actually latitude and longitude in there
+right down at the bottom as well.
+So maybe the tree is finally going
+to beat the linear regression model.
+Well, we can test it out the same way as we did before.
+best.tree.pred=predict(best.tree, newdata=test).
+best.tree.sse, the Sum of Squared Errors,
+is the sum of the best tree's predictions
+less the true values squared.
+That number is 3,675.
+So if you can remember from the last video,
+the tree from the previous video actually only got something
+in the 4,000s.
+So not very good.
+So we have actually improved.
+This tree is better on the testing set
+than the original tree we created.
+But, you may also remember that the linear regression
+model did actually better than that still.
+The linear regression SSE was more around 3,030.
+So the best tree is not as good as the linear regression model.
+But cross validation did improve performance.
+So the takeaway is, I guess, that trees
+aren't always the best method you have available to you.
+But you should always try cross validating
+them to get as much performance out of them as you can.
+And that's the end of the presentation. Thank you.
+
+
+## In this video, we use (0:10)*0.001 to define the cp values that we want to test in our model.
+Alternatively, we could replace this with the sequence function seq(0,0.01,0.001) which we learned in Unit 1. For some people, the sequence function is more intuitive, and you should use whichever syntax makes more sense to you personally.
+
+--------------------------------------------------------------------------------

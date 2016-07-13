@@ -1,0 +1,149 @@
+# U5 Recitation transcript
+
+Video 6 Evaluating the Model
+
+
+Now that we've trained a model, we
+need to evaluate it on the test set.
+So let's build an object called pred
+that has the predicted probabilities
+for each class from our CART model.
+So we'll use predict of emailCART, our CART model,
+passing it newdata=test, to get test set predicted
+probabilities.
+So to recall the structure of pred,
+we can look at the first 10 rows with pred[1:10,].
+So this is the rows we want.
+We want all the columns.
+So we'll just leave a comma and nothing else afterward.
+So the left column here is the predicted probability
+of the document being non-responsive.
+And the right column is the predicted probability
+of the document being responsive.
+They sum to 1.
+So in our case, we want to extract
+the predicted probability of the document being responsive.
+So we're looking for the rightmost column.
+So we'll create an object called pred.prob.
+And we'll select the rightmost or second column.
+All right.
+So pred.prob now contains our test set
+predicted probabilities.
+And we're interested in the accuracy
+of our model on the test set.
+So for this computation, we'll use a cutoff of 0.5.
+And so we can just table the true outcome,
+which is test$responsive against the predicted outcome,
+which is pred.prob >= 0.5.
+What we can see here is that in 195 cases,
+we predict false when the left column and the true outcome
+was zero, non-responsive.
+So we were correct.
+And in another 25, we correctly identified a responsive
+document.
+In 20 cases, we identified a document as responsive,
+but it was actually non-responsive.
+And in 17, the opposite happened.
+We identified a document as non-responsive,
+but it actually was responsive.
+So our accuracy is 195 + 25, our correct results,
+divided by the total number of elements
+in the testing set, 195 + 25 + 17 + 20.
+So we have an accuracy in the test set of 85.6%.
+And now we want to compare ourselves
+to the accuracy of the baseline model.
+As we've already established, the baseline model
+is always going to predict the document is non-responsive.
+So if we table test$responsive, we see that it's going to be
+correct in 215 of the cases.
+So then the accuracy is 215 divided
+by the total number of test set observations.
+So that's 83.7% accuracy.
+So we see just a small improvement
+in accuracy using the CART model, which, as we know,
+is a common case in unbalanced data sets.
+However, as in most document retrieval applications,
+there are uneven costs for different types of errors here.
+Typically, a human will still have to manually review
+all of the predicted responsive documents
+to make sure they are actually responsive.
+Therefore, if we have a false positive,
+in which a non-responsive document is labeled
+as responsive, the mistake translates
+to a bit of additional work in the manual review
+process but no further harm, since the manual review process
+will remove this erroneous result.
+
+# Dealing with False negatives
+
+But on the other hand, if we have a false negative,
+in which a responsive document is labeled as non-responsive
+by our model, we will miss the document entirely
+in our predictive coding process.
+Therefore, we're going to assign a higher cost to false negatives
+than to false positives, which makes this a good time to look
+at other cut-offs on our ROC curve.
+
+Video 7 The ROC Curve
+
+
+Now let's look at the ROC curve so we
+can understand the performance of our model
+at different cutoffs.
+We'll first need to load the ROCR package
+with a library(ROCR).
+Next, we'll build our ROCR prediction object.
+So we'll call this object predROCR =
+prediction(pred.prob, test$responsive).
+All right.
+So now we want to plot the ROC curve
+so we'll use the performance function to extract
+the true positive rate and false positive rate.
+So create something called perfROCR =
+performance(predROCR, "tpr", "fpr").
+And then we'll plot(perfROCR, colorize=TRUE),
+so that we can see the colors for the different cutoff
+thresholds.
+All right.
+
+# refer to pdf
+
+Now, of course, the best cutoff to select
+is entirely dependent on the costs assigned by the decision
+maker to false positives and true positives.
+However, again, we do favor cutoffs
+that give us a high sensitivity.
+We want to identify a large number of the responsive
+documents.
+So something that might look promising
+might be a point right around here,
+in this part of the curve, where we
+have a true positive rate of around 70%,
+meaning that we're getting about 70%
+of all the responsive documents, and a false positive rate
+of about 20%, meaning that we're making mistakes
+and accidentally identifying as responsive 20%
+of the non-responsive documents.
+Now, since, typically, the vast majority of documents
+are non-responsive, operating at this cutoff
+would result, perhaps, in a large decrease
+in the amount of manual effort needed
+in the eDiscovery process.
+
+And we can see from the blue color
+of the plot at this particular location
+that we're looking at a threshold around maybe 0.15
+or so, significantly lower than 50%, which is definitely
+what we would expect since we favor
+false positives to false negatives.
+
+So lastly, we can use the ROCR package
+to compute our AUC value.
+So, again, call the performance function
+with our prediction object, this time extracting the AUC value
+and just grabbing the y value slot of it.
+We can see that we have an AUC in the test set of 79.4%, which
+means that our model can differentiate
+between a randomly selected responsive and non-responsive
+document about 80% of the time.
+

@@ -1,0 +1,380 @@
+U7 Visualisation
+
+V1
+
+V2 Pie Charts
+
+There are a lot of visualizations in the world
+and we don't have time for them all.
+So let's focus on one particularly abused plot
+type, the pie chart.
+We have a specimen right here.
+This is a pie chart of phone application crashes,
+showing what percentage of all crashes
+took place in each mobile operating system.
+This data set contains information
+for all versions of Apple's iOS, which is used in the iPhone,
+as well as the various versions of Google's Android.
+There are many things wrong with this plot,
+but let's break down exactly what.
+Putting aside, for a moment, that there are far too
+many labels, check out the ordering of the labels
+corresponding to iOS.
+Two sensible ways of ordering iOS data
+might be by decreasing percentage
+or by version number.
+Instead, we start at the top with iOS 3.13, with 0%,
+and then jump to iOS 4.2.10, with 12.64%,
+before going back down to iOS 3.2, with 0.00% again.
+Which brings us to the number of labels.
+Many of the segments are so narrow that they
+can't be seen, although technically, all data is
+retained, because every segment is labeled.
+If we look at iOS, we see that there
+are only three major versions, 3, 4, and 5, suggesting
+we can compress down the iOS segments to just three
+segments, while retaining most of the information.
+At the least, the versions that differ in the third number
+should be combined, and all data points of 0% should be removed.
+The more fundamental concern of this visualization
+is that it might really be showing
+the percentage of the phone market
+using each operating system, and says nothing about whether one
+operating system crashes more than the other, which
+is the focus of this visualization.
+Our next pie chart has its own share of problems.
+This is a plot of how many shark attacks have
+been attributed to each type of shark.
+Firstly, the pie chart is, for some reason,
+plotted on a hemisphere, a graphical effect that
+adds nothing, but has the effect of vertically compressing
+the pie chart.
+Next, there is the issue of label orientation.
+While the caption, "Shark species (total/deaths)",
+and the label, "White shark", are horizontal,
+the rest are vertical and hard to read.
+They are in order, however, which does help.
+Although the "Others" segment is unfortunately large,
+which is unclear if it is due to there being a lot of attacks
+by many species, or if the species is not
+known for many attacks.
+Finally, at a glance, it is hard to distinguish
+the magnitude of differences between the orange, green,
+blue, and brown segments in the top part of the pie chart,
+and we must resort to the labels to distinguish between them.
+There is no meaning in the colors, they are arbitrary.
+Finally, we'll look at a pie chart I made,
+of the origins of the international students at MIT.
+I made this chart with the default settings
+in Google Sheets.
+First of all, not all of the segments
+are labeled, so that data is lost,
+for the Middle East, Africa, Oceania,
+and the unknown regions.
+Second, again, we have colors that are arbitrary and almost
+close enough to be confusing.
+The difference between Asia and Africa's colors is subtle.
+And of course, the 3D-effect on the pie
+chart adds nothing, but does play a subtle trick on the eye.
+Due to the 3D-effect, the blue and red segments
+are actually larger looking, which at a glance,
+may lead the viewer to overestimate their size.
+What we are going to do now is, switch over to R
+and plot this data more appropriately, using ggplot.
+And then we'll return to the slides,
+to discuss some more possibilities for this data.
+
+
+V3 Bar Charts in ggplot
+
+So yes, we have a bar for each region.
+The values are between zero and one,
+which looks kind of strange.
+The labels are actually lying over
+the top of the columns, which isn't very nice,
+and the regions aren't really ordered
+in any way that's useful.
+They're actually ordered in alphabetical order,
+but I think it would be much more interesting to have them
+in descending order.
+So we can work on this.
+First of all, though, what is this stat = "identity"?
+Well, it's pretty simple.
+Geometry bar has multiple modes of operation,
+and stat = "identity" says, use the value of the y variable
+as is, which is what we want.
+The height of the bar is the value of the y variable.
+Now, there are other modes, including
+one that counts the number of rows
+for each value of x, and plots that instead.
+So you can look at the documentation for ggplot
+to see the different options and how they work.
+But stat = "identity" is what we want right now.
+Now, the x-axis is out of order.
+And the reason for this is that ggplot defaults
+to alphabetical order for the x-axis.
+What we need to do is make Region an ordered factor
+instead of an unordered factor.
+We can do this with the reorder command
+and the transform command.
+So let's write this out.
+So we're going to transform the international data frame.
+And what we're going to do is say, Region, it's
+going to be a reordering of itself,
+based on decreasing order of PercentOfIntl.
+So if we look at the structure of the data frame now,
+we see there's something going on in the Region column that
+wasn't going before.
+And that's that ordering.
+So you might have also noticed that I put a negative sign
+in front of PercentOfIntl.
+So that negative sign means decreasing order.
+If we had left that out, it would have actually
+ordered them in increasing order.
+So unknown or stateless would have been first,
+and Oceania would have been second, and so on.
+So that's one thing fixed.
+Another thing we didn't like was that the numbers
+were between zero and one, which looks a little bit messy.
+So let's just simply multiply all the values by 100.
+So intl$PercentOfIntl = intl$PercentOfIntl*100.
+And now the other things we have to fix,
+like the text overlying and the x-axis being all bunched up
+like that, we're going to do that in a new ggplot command.
+So I'm going to break it across multiple lines.
+So we start up with the ggplot command, as we did before,
+actually identical to what we had before.
+So the aesthetic is x-axis is the region,
+and the y-axis is the percentage of international students.
+We break it into multiple lines, so put the plus at the end
+there, and press Shift Enter.
+We're going to do a bar plot.
+The stat = "identity", as before.
+And this time though, we're going
+to manually specify a fill.
+I'm going to say "dark blue".
+I quite like how that looks.
+Now, we need the text, and the aesthetic of that
+is to have the label equal the value of the column.
+I'm going to add one more thing to this.
+I'm going to say vjust = -0.4.
+And what this does is, it moves the labels up a little bit
+and off the top of the bars.
+You can play with that.
+So a positive value will move it down,
+and a negative value will move it up.
+Next, I'm going to set the y-axis label
+to be something a bit more sensible--
+so "Percent of International Students".
+And finally, I'd like to fix up that x-axis.
+So I want to get rid of the word "Region," because it's
+pretty obvious these are regions.
+And I also want to rotate the text at a bit of an angle,
+so you can read it all on a plot like this.
+That's done with the theme command.
+So the theming we're going to do is
+we're going to say the axis title, the x-axis,
+should be blank.
+And the axis text on the x-axis should be rotated,
+so it's a text element that's angle is 45.
+And I'll move it sideways just a little bit-- hjust = 1.
+And there we go.
+So we've got our labels vjust-ed above the columns.
+The bars themselves are dark blue.
+The numbers are now between 0 and 100,
+instead of zero and one.
+We can read all the text labels.
+And it's generally a lot more readable
+than the pie plot or our original ggplot, at that.
+Let's go back to the slides now and talk
+about what we've just done.
+
+Video 6 Scales
+
+
+In this video, we're going to look at scales.
+This first plot shows the average height
+of a 21-year-old male in centimeters.
+The x-axis is time, starting in 1871, and ending in 1975.
+Each person represents the height,
+at a different point in time, and the points are evenly
+spaced in time, so the x-axis is OK.
+The y-axis ranges from just under 160 to 180 centimeters,
+which isn't inherently bad, but does overstate the change.
+The real problem is the bars.
+If it was accurate, we would only
+really see the heads of the men, but instead we
+see their whole bodies, making it seem as if people have not
+only doubled in height, but they've also double in width.
+This next plot also has issues with scale.
+The total range of the plot is 8% to 10%,
+although all the numbers fall in the range of 8.6% to 9.2%.
+If we plotted the y-axis on a 0% to 10% scale,
+the conclusion would be that nothing is really
+changing at all.
+The last point in the chart is at the wrong height,
+and the size of the markers makes the relative locations
+hard to distinguish.
+Also notice that the gap between 9.0% and the 8.9% markers
+on the far left side, and the 8.9% and 8.8% markers,
+have a different gap.
+This plot shows the relative breakdown of teachers
+by race in a certain teaching program.
+The Caucasian bar is truncated, which is a risky choice,
+but could be appropriate in some situations.
+A much bigger problem is that the scale of each blue bar
+is entirely different.
+For example, the Native American bar is about a third
+of the length of the African American bar,
+but there are more than 10 times as many African Americans
+in this program as Native Americans.
+In fact, visually, this plot is completely meaningless.
+The only useful thing about it is the numbers.
+But even there, there is a bit of confusion,
+as Native Americans are given to one decimal place,
+but the others are rounded.
+Which when combined with the confusing scales,
+casts doubt on the correctness of the numbers.
+Here is a before and after of the same data.
+On the left, we see the US military expense
+in the right axis, and troop count on the left axis.
+Both the line and bar plots are individually OK,
+but the combination is misleading.
+Because you have mixed two units, dollars and people,
+there is a false impression of some sort
+of crossover point in 1995 that does not exist.
+On the right is the same data presented in a different way.
+We now have troops on the x-axis,
+and dollars on the y-axis.
+The line moves through time now, allowing
+us to see when moments of change occurred, such as decreases
+in troop count, through the 90s, at the end of the Cold War,
+the increase in spending of the 2000s,
+and the recent decreases in military spending.
+The final visualization I want to show you today
+is all about the different types of household.
+The US Census Bureau periodically
+determines how many households are comprised, for example,
+of married couples with and without children,
+people living alone, and so on.
+First of all, I'm not saying this is a bad visualization.
+In fact, if we are interested in the relative share
+of each type of household in a particular year,
+it's actually pretty good.
+However, if what we're interested in
+is the rates of change across the years,
+this is next to useless.
+The key problem is that the x-axis is completely off.
+The gap between the first two columns is 10 years,
+but the gap between the last two columns
+is only 2 years, meaning that the rates are
+hard to read from this.
+If we're not interested in the rates of changes,
+but just want to compare two years at a time, it's not bad,
+but it's not easy either.
+Try comparing 1970 married without children
+to 2010 married without children,
+without looking at the numbers.
+Can you tell if it has grown or shrunk?
+Finally, and more generally, this chart
+shows relative numbers.
+If you look at absolute numbers, we
+might find the total number of couples married with children
+is actually constant, but the number of other households
+has increased.
+We are now going to change into R
+to try plotting this data as a line chart.
+
+v7 Line Charts
+
+First, let's make sure we have ggplot2 loaded.
+So library(ggplot2).
+Now let's load our data frame, which is in households.csv.
+So read.csv(households.csv).
+If we look at the structure of households,
+we see that there is a year column and then
+six other columns for each of the different household types.
+So this is actually a problem for us.
+Given this structure of a data frame,
+what would we put in the aesthetic
+for our ggplot command?
+It's not obvious, to me at least,
+and in fact, I don't think it's really possible.
+The reason is that ggplot needs it
+in the form of: year, group, and fraction.
+The solution is to use the melt function
+from the reshape package.
+Melt will take a 2-dimensional data frame like ours,
+and convert it into exactly the right form we need for ggplot2.
+So first, let's load reshape2 -- library(reshape2).
+Now, let's look at the first two columns of our households data
+frame -- households[,1:2].
+So there's a Year and a MarriedWChild for each year.
+Now, let's look at the first few rows of our melted households
+data frame.
+So head(melt(households, id="Year")).
+And there you have it.
+So, basically, what's happened is
+that each value of MarriedWChild has
+turned into its own row in the new data frame.
+To make it more clear, perhaps, let's look
+at the first three columns of households.
+Now we have MarriedWOChild.
+Now let's look at, instead of just the first rows
+of our melted data frame, let's look at the first 10 rows.
+So rows 1 to 10, all columns.
+There we go.
+So there you can see the eight values of MarriedWChild,
+and the first two values of MarriedWOChild.
+So there's that 30.3 up there, gone down to 30.3 here,
+29.9 gone to down here.
+So every value in our data frame now
+corresponds to a new row in our melted data frame,
+which is exactly what we need for ggplot.
+So let's try plotting this melted data frame -- ggplot,
+melt, households, using the Year column as an id column,
+the key column.
+Our aesthetic is going to be now to use Year on the x-axis.
+Our y-axis will be the value column of our melted data
+frame.
+And the color of the line will depend
+on the group, which is called variable in the melted data
+frame.
+So that's our aesthetic.
+Our geometry is going to be lines.
+And I want to make the lines a little bit thicker.
+So let's say line size is 2.
+And I also want to have points for each year
+in the data frame, so I'm going to have lines and points.
+So geom_point.
+And I'm going to make the size of these a little bit bigger
+than normal too, size = 5.
+And we should put a y-axis label.
+So ylab("Percentage of Households").
+And there you go.
+Now, this is actually quite interesting
+when we compare it back to the chart we had in the slides.
+Now you can see just how quickly MarriedWChild
+is decreasing as a relative share.
+You can also more clearly see that MarriedWOChild
+is pretty much flat, and that the differences being made up
+by the other four types of households
+is steadily increasing over the years.
+So there you have it, the same data,
+plotted in two different ways.
+Now, I'm not saying one of these is better than the other one.
+For example, if I want to compare inside a given year,
+say 1970, it's not the most easy thing, at a glance,
+to see just how much of a total hundred percent
+is taken up by each.
+But if I want to see across years, it's far superior.
+And I can clearly see that the last data point is pretty much
+right next to the second to last data
+point, which is something that was
+hard to tell with the other visualization.
+So I hope this has made you think a little bit more
+about the different ways you can plot the same data.
+And hopefully improved your ggplot2 skills
+a little bit more.
+Thanks for watching.
+

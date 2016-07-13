@@ -1,0 +1,117 @@
+> ##model 1
+> model1<-lm(Price~AGST, data = wine)
+> summary(model1)
+
+Call:
+lm(formula = Price ~ AGST, data = wine)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.78450 -0.23882 -0.03727  0.38992  0.90318 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -3.4178     2.4935  -1.371 0.183710    
+AGST          0.6351     0.1509   4.208 0.000335 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.4993 on 23 degrees of freedom
+Multiple R-squared:  0.435,	Adjusted R-squared:  0.4105 
+F-statistic: 17.71 on 1 and 23 DF,  p-value: 0.000335
+
+> 
+> #Residuals
+> model1$residuals
+          1           2           3           4           5           6           7           8           9          10 
+ 0.04204258  0.82983774  0.21169394  0.15609432 -0.23119140  0.38991701 -0.48959140  0.90318115  0.45372410  0.14887461 
+         11          12          13          14          15          16          17          18          19          20 
+-0.23882157 -0.08974238  0.66185660 -0.05211511 -0.62726647 -0.74714947  0.42113502 -0.03727441  0.10685278 -0.78450270 
+         21          22          23          24          25 
+-0.64017590 -0.05508720 -0.67055321 -0.22040381  0.55866518 
+> 
+> #SSE
+> SSE<-sum(model1$residuals^2)
+> SSE
+[1] 5.734875
+> 
+> ## model 2
+> model2<-lm(Price~AGST+HarvestRain,data = wine)
+> summary(model2)
+
+Call:
+lm(formula = Price ~ AGST + HarvestRain, data = wine)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.88321 -0.19600  0.06178  0.15379  0.59722 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -2.20265    1.85443  -1.188 0.247585    
+AGST         0.60262    0.11128   5.415 1.94e-05 ***
+HarvestRain -0.00457    0.00101  -4.525 0.000167 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.3674 on 22 degrees of freedom
+Multiple R-squared:  0.7074,	Adjusted R-squared:  0.6808 
+F-statistic: 26.59 on 2 and 22 DF,  p-value: 1.347e-06
+
+> SSE<-sum(model2$residuals^2)
+> SSE
+[1] 2.970373
+> 
+> ## model 3
+> model3<-lm(Price~AGST+HarvestRain+WinterRain+Age+FrancePop,data=wine)
+> summary(model3)
+
+Call:
+lm(formula = Price ~ AGST + HarvestRain + WinterRain + Age + 
+    FrancePop, data = wine)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.48179 -0.24662 -0.00726  0.22012  0.51987 
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -4.504e-01  1.019e+01  -0.044 0.965202    
+AGST         6.012e-01  1.030e-01   5.836 1.27e-05 ***
+HarvestRain -3.958e-03  8.751e-04  -4.523 0.000233 ***
+WinterRain   1.043e-03  5.310e-04   1.963 0.064416 .  
+Age          5.847e-04  7.900e-02   0.007 0.994172    
+FrancePop   -4.953e-05  1.667e-04  -0.297 0.769578    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.3019 on 19 degrees of freedom
+Multiple R-squared:  0.8294,	Adjusted R-squared:  0.7845 
+F-statistic: 18.47 on 5 and 19 DF,  p-value: 1.044e-06
+
+> SSE<-sum(model3$residuals^2)
+> SSE
+[1] 1.732113
+> 
+> ## Quick Question 2 model
+> modelQ<-lm(Price~HarvestRain+WinterRain, data=wine)
+> summary(modelQ)
+
+Call:
+lm(formula = Price ~ HarvestRain + WinterRain, data = wine)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-1.0933 -0.3222 -0.1012  0.3871  1.1877 
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  7.865e+00  6.616e-01  11.888 4.76e-11 ***
+HarvestRain -4.971e-03  1.601e-03  -3.105  0.00516 ** 
+WinterRain  -9.848e-05  9.007e-04  -0.109  0.91392    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.5611 on 22 degrees of freedom
+Multiple R-squared:  0.3177,	Adjusted R-squared:  0.2557 
+F-statistic: 5.122 on 2 and 22 DF,  p-value: 0.01492

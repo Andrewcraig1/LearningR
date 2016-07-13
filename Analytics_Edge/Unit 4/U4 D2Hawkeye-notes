@@ -1,0 +1,647 @@
+# D2Hawke Notes: Transcript
+Video 1
+D2Hawkeye combines expert knowledge and databases with analytics to improve quality and course
+management in health care.
+
+The company was located in Waltham, Massachusetts.It grew very fast and was sold to Verisk Analytics in 2009.
+
+The overall process that D2Hawkeye uses is as follows.
+It starts with medical claims that
+consist of diagnoses, procedures, and drugs.
+These medical claims are then processed
+via process of aggregation, cleaning, and normalization.
+
+This data then enters secure databases
+on which predictive models are applied.
+The output of predictive models are specific reports
+that give insight to the various questions
+that D2Hawkeye aspires to answer.
+
+The company tries to improve health care case management.
+Specifically, it tries to identify high-risk patients,
+work with patients to manage treatment and associated costs,
+and arrange specialist care.
+
+Medical costs, of course, is a serious matter
+both for the patient as well as the provider.
+Being able to predict this cost is an important problem
+that interests both the patients as well as the providers.
+The overall goal of D2Hawkeye is to improve
+the quality of cost predictions.
+D2Hawkeye had many different types of clients.
+The most important were third party administrators
+of medical claims.
+
+Third party administrators are companies
+hired by the employer who manage the claims of the employees.
+Now the type of clients were case management companies,
+benefits consultants, and health plans.
+The company grew and by 2009, it analyzed monthly millions
+of people through the analytic platform it built.
+This corresponded to thousands of employers
+that were processed monthly.
+
+# Video 2
+Data sources: What is available without breaching privacy .
+
+
+Let us discuss data sources in the health care industry.
+So the industry is data-rich, but data may be hard to access.
+Sometimes it involves unstructured data
+like doctor's notes.
+
+Often the data is hard to get due to differences
+in technology.
+
+Hospitals in southern Massachusetts versus California
+might use different technologies and different platforms.
+Finally there are strong privacy laws, HIPAA,
+around health care data sharing.
+So what is available?
+Claims data is a major source.
+Claims data are requests for reimbursement submitted
+to insurance companies or state-provided insurance
+from doctors, hospitals and pharmacies.
+Another source of data is the eligibility information
+for employees.
+And finally demographic information: gender and age.
+Let me give you some examples on claims data.
+So this shows six different claims.
+Let's consider this one.
+So this is the provider's name.
+The corresponding diagnostic code.
+This is about upper respiratory disorders.
+This is another code associated with the diagnosis.
+This is the scientific term for the diagnosis.
+The specific code again.
+This was an office visit, and it's an established patient.
+The date. And the amount of money that was claimed by the physician.
+Others claims are similar.
+
+As we see, the claims data is a rich, structured data source.
+It is very high dimensional.
+For example, claims involving diagnosis
+involve thousands of different codes.
+Similarly with drugs, where there are tens of thousands,
+and procedures.
+
+However, this collection of data does not
+capture all aspects of a person's treatment or health.
+Many things must be inferred.
+Unlike electronic medical records,
+we do not know the results of a test,
+only that the test was administered.
+
+For example, we do not know the results of a blood test,
+but we do know that the blood test was administered.
+The specific exercise we are going to see in this lecture
+is an analytics approach to building models starting
+with 2.4 million people over a three year span.
+
+The observation period was 2001 to 2003.
+This is where this data is coming from.
+And then out of sample, we make predictions
+for the period of 2003 and 2004.
+
+This was in the early years of D2Hawkeye.
+Out of the 2.4 million people, we included only people
+with data for at least 10 months in both periods,
+both in the observation period and the results period.
+This decreased the data to 400,000 people.
+
+# Video 3
+
+To build an analytics model, let us discuss the variables
+we used.
+
+First, we used the 13,000 diagnoses.
+It's for the codes for diagnosis that claims data utilize.
+There were also 22,000 different codes for procedures
+and 45,000 codes for prescription drugs.
+To work with this massive amount of variables,
+we aggregated the variables as follows.
+Out of the 13,000 diagnoses, we defined 217 diagnosis groups.
+Out of the 20,000 procedures, we aggregated the data
+to develop 213 procedure groups.
+And, finally, from 45,000 prescription drugs,
+we developed 189 therapeutic groups.
+
+To illustrate an example of how we infer further information
+from the data, the graph here shows
+on the horizontal axis, time, and on the vertical axis,
+costs in thousands of dollars.
+So patient one is a patient who, on a monthly basis,
+has costs on the order of $10,000 to $15,000, a fairly
+significant cost but fairly constant in time.
+Patient two has also an annual cost
+of a similar size to patient one.
+But in all but the third month, the costs are almost $0.
+Whereas in the third month, it cost about $70,000.
+
+In fact, this is additional data we
+defined indicating whether the patient has
+a chronic or an acute condition.
+
+In addition to the initial variables, the 217 procedure
+groups, and 189 drugs, and so forth, we also
+defined in collaboration with medical doctors,
+269 medically-defined rules.
+For example, the first type of rule
+indicates the interaction between various illnesses.
+For example, obesity and depression.
+
+Then new variables regarding interaction
+between diagnosis and age.
+For example, more than 65 years old and coronary
+artery disease.
+
+Noncompliance with treatment.
+For example, non-fulfillment of a particular drug order.
+
+And, finally, illness severity.
+For example, severe depression as
+opposed to regular depression.
+And the last set of variables involve demographic information
+like gender and age.
+
+# Error measures
+
+
+Let us introduce the error measures
+we used in building the analytics models.
+We of course used R squared, but we also used other measures.
+
+Next measure, the so-called "penalty error,"
+is motivated by the fact that if you classify
+a very high-risk patient as a low-risk patient,
+this is more costly than the reverse,
+namely classifying a low-risk patient
+as a very high-risk patient.
+
+Motivated by this, we developed a penalty error.
+And the idea is to use asymmetric penalties.
+
+The graph here-- shows a matrix--
+where this is the outcome and this is the forecast.
+For example, whenever we classify a low-risk patient
+as high-risk, we pay a penalty of 2,
+which is a difference of 3 minus 1, the difference in the error.
+But inversely, when you classify a bucket 3 patient
+as bucket 1 patient, this is double.
+The cost-- the penalty-- is double the amount.
+So you observe that the off diagonal penalties are double
+the corresponding penalties in the lower diagonal.
+To judge the quality of the analytics models we developed,
+we compare it with a baseline.
+And the baseline is to simply predict
+that the cost in the next "period"
+will be the cost in the current period.
+We have observed that as far as identification of buckets
+is concerned, the accuracy was 75%.
+So namely, whenever we predict that the risk is bucket 3--
+indeed it is bucket 3-- this happens 75% of the time,
+and the penalty error-- the average penalty
+error of the baseline-- was 0.56.
+
+
+An important aspect of the variables
+are the variables related to cost.
+So rather than using costs directly,
+we bucketed costs and considered everyone in the group equally.
+
+# So we defined five buckets.
+So the buckets were partitioned in such a way
+so that 20% of all costs is in bucket five,
+20% is in bucket four, and so forth.
+
+So the partitions were from 0 to 3,000, from 3,000 to 8,000,
+from 8,000 to 19,000, from 19,000 to 55,000,
+and above 55,000.
+
+The number of patients that were below 3,000
+was-- 78% of the patients had costs below 3,000.
+Just to remind you, we created a bucket
+so that the total cost in each bucket was 20% of the total.
+But the number of patients in bucket one, for example,
+is very high (78%).
+Let us interpret the buckets medically.
+So this shows the various levels of risk.
+Bucket one consists of patients that have rather low risk.
+Bucket two has what is called emerging risk.
+In bucket three, moderate level of risk.
+Bucket four, high risk.
+And bucket five, very high risk.
+So from a medical perspective, buckets two and three,
+the medical and the moderate risk patients,
+are candidates for wellness programs.
+Whereas bucket four, the high risk patients,
+are candidates for disease management programs.
+And finally bucket five, the very high risk patients,
+are candidates for case management.
+
+#Video 5: CART to predict Cost
+
+
+Let us introduce the method we use
+for predicting the bucket number.
+It is called-- it is a method called classification
+and regression trees.
+
+In this case, we use multi-class classification.
+There are five classes, buckets one to five.
+
+To give you an example, let us consider
+patients that have two types of diagnosis:
+coronary artery disease and diabetes.
+
+So if a patient does not have a coronary artery disease,
+we'd classify the patient as bucket one.
+
+If it has coronary artery disease,
+then we check whether the person has diabetes or doesn't
+have diabetes.
+If it has diabetes, then it's bucket five, very high risk.
+And if it doesn't have diabetes, but given
+it has coronary artery disease, it
+is classified as bucket three.
+So this is an example in which we only have two diagnoses
+and we will state how the method works.
+In the application of Hawkeye, the most important factors
+were related to cost in the beginning.
+
+So in the beginning, the classification tree
+involved divisions based on cost.
+For example, if the patient had paid less than $4,000--
+so this is bucket one classification-- if it paid
+more than $4,000, then we further
+investigate whether the patient pays less than $40,000
+or more than $40,000 and so forth.
+
+As the tree grows, then the secondary factor
+is utilized later in the classification tree
+involve various chronic illnesses
+and some of the medical rules we discussed earlier.
+For example, whether or not the patient
+has asthma and depression or not.
+
+If it has asthma and depression, then it's bucket five.
+If it doesn't, then we consider a particular indicator
+indicating hylan injection, which
+is an indication of a possible knee
+replacement or arthroscopy.
+So if this indicator is equal to 1, then it's bucket three.
+If it's indicator is equal to 0, it's not present,
+then it's bucket one.
+
+So let us give some examples of bucket five.
+So an example is as follows.
+The patient is under 35 years old,
+he has between 3,300 and 3,900 in claims, coronary artery
+disease as a diagnosis, but no office visits in the last year.
+Another example of a category of a patient that
+is classified as bucket five are claims
+between $3,900 and $43,000 with at least $8,000
+paid in the last 12 months, $4,300 in pharmacy claims,
+and acute cost profile and cancer diagnosis.
+And another final example is more than $58,000 in claims,
+but at least $50,000 paid in the last 12 months,
+but not an acute profile.
+
+### Classification trees have the major advantage
+as being interpretable by the physicians who
+observe them and judge them.
+In other words, people were able to identify
+these cases as reasonable.
+In other words, the human intuition
+agreed with the output of the analytics model.
+
+# Video 6: Claims Data in R
+
+In the next few videos, we'll be using a data set published
+by the United States Centers for Medicare and Medicaid Services
+to practice creating CART models to predict health care cost.
+We unfortunately can't use the D2Hawkeye data
+due to privacy issues.
+The data set we'll be using instead,
+ClaimsData.csv, is structured to represent a sample of patients
+in the Medicare program, which provides
+health insurance to Americans aged 65 and older,
+as well as some younger people with certain medical
+conditions.
+To protect the privacy of patients represented
+in this publicly available data set, a number of steps
+are performed to anonymize the data.
+So we would need to retrain the models we develop
+in this lecture on de-anonymized data
+if we wanted to apply our models in the real world.
+Let's start by reading our data set into R
+and taking a look at its structure.
+We'll call our data set Claims, and we'll
+use the read.csv function to read in the data file
+ClaimsData.csv.
+Make sure to navigate to the directory on your computer
+containing the file ClaimsData.csv first.
+Now let's take a look at the structure of our data frame
+using the str function.
+The observations represent a 1% random sample
+of Medicare beneficiaries, limited
+to those still alive at the end of 2008.
+Our independent variables are from 2008,
+and we will be predicting cost in 2009.
+Our independent variables are the patient's age
+in years at the end of 2008, and then several binary variables
+indicating whether or not the patient had
+diagnosis codes for a particular disease
+or related disorder in 2008: alzheimers, arthritis, cancer,
+chronic obstructive pulmonary disease, or copd, depression,
+diabetes, heart.failure, ischemic heart disease,
+or ihd, kidney disease, osteoporosis, and stroke.
+Each of these variables will take value 1 if the patient had
+a diagnosis code for the particular disease and value 0
+otherwise.
+Reimbursement2008 is the total amount
+of Medicare reimbursements for this patient in 2008.
+And reimbursement2009 is the total value
+of all Medicare reimbursements for the patient in 2009.
+Bucket2008 is the cost bucket the patient fell into in 2008,
+and bucket2009 is the cost bucket
+the patient fell into in 2009.
+These cost buckets are defined using the thresholds determined
+by D2Hawkeye.
+So the first cost bucket contains patients
+with costs less than $3,000, the second cost bucket
+contains patients with costs between $3,000 and $8,000,
+and so on.
+We can verify that the number of patients in each cost bucket
+has the same structure as what we
+saw for D2Hawkeye by computing the percentage of patients
+in each cost bucket.
+So we'll create a table of the variable bucket2009
+and divide by the number of rows in Claims.
+This gives the percentage of patients
+in each of the cost buckets.
+The first cost bucket has almost 70% of the patients.
+The second cost bucket has about 20% of the patients.
+And the remaining 10% are split between the final three cost
+buckets.
+So the vast majority of patients in this data set have low cost.
+Our goal will be to predict the cost bucket the patient fell
+into in 2009 using a CART model.
+But before we build our model, we
+need to split our data into a training set and a testing set.
+So we'll load the package caTools,
+and then we'll set our random seed to 88
+so that we all get the same split.
+And we'll use the sample.split function,
+where our dependent variable is Claims$bucket2009,
+and we'll set our SplitRatio to be 0.6.
+So we'll put 60% of the data in the training set.
+
+## Video 7: Baseline Method and Penalty Matrix
+
+Let's now see how the baseline method used by D2Hawkeye
+would perform on this data set.
+The baseline method would predict
+that the cost bucket for a patient in 2009
+will be the same as it was in 2008.
+
+So let's create a classification matrix to compute the accuracy
+for the baseline method on the test set.
+So we'll use the table function, where the actual outcomes are
+ClaimsTest$bucket2009, and our predictions are
+ClaimsTest$bucket2008.
+
+The accuracy is the sum of the diagonal, the observations that
+were classified correctly, divided
+by the total number of observations in our test set.
+So we want to add up 110138 + 10721 + 2774 + 1539 + 104.
+And we want to divide by the total number
+of observations in this table, or the number of rows
+in ClaimsTest.
+So the accuracy of the baseline method is 0.68.
+
+Now how about the penalty error?
+To compute this, we need to first create a penalty matrix
+in R. Keep in mind that we'll put
+the actual outcomes on the left, and the predicted outcomes
+on the top.
+So we'll call it PenaltyMatrix, which
+will be equal to a matrix object in R.
+And then we need to give the numbers
+that should fill up the matrix: 0, 1, 2, 3, 4.
+That'll be the first row.
+And then 2, 0, 1, 2, 3.
+That'll be the second row.
+4, 2, 0, 1, 2 for the third row.
+6, 4, 2, 0, 1 for the fourth row.
+And finally, 8, 6, 4, 2, 0 for the fifth row.
+And then after the parentheses, type a comma,
+and then byrow = TRUE, and then add nrow = 5.
+Close the parentheses, and hit Enter.
+So what did we just create?
+Type PenaltyMatrix and hit Enter.
+So with the previous command, we filled up our matrix row
+by row.
+The actual outcomes are on the left,
+and the predicted outcomes are on the top.
+So as we saw in the slides, the worst outcomes
+are when we predict a low cost bucket,
+but the actual outcome is a high cost bucket.
+We still give ourselves a penalty
+when we predict a high cost bucket
+and it's actually a low cost bucket, but it's not as bad.
+
+So now to compute the penalty error of the baseline method,
+we can multiply our classification matrix
+by the penalty matrix.
+So go ahead and hit the Up arrow to get back
+to where you created the classification
+matrix with the table function.
+And we're going to surround the entire table function
+by as.matrix to convert it to a matrix
+so that we can multiply it by our penalty matrix.
+So now at the end, close the parentheses
+and then multiply by PenaltyMatrix and hit Enter.
+So what this does is it takes each number
+in the classification matrix and multiplies it
+by the corresponding number in the penalty matrix.
+So now to compute the penalty error,
+we just need to sum it up and divide
+by the number of observations in our test set.
+So scroll up once, and then we'll
+just surround our entire previous command
+by the sum function.
+And we'll divide by the number of rows in ClaimsTest
+and hit Enter.
+So the penalty error for the baseline method is 0.74.
+In the next video, our goal will be
+to create a CART model that has an accuracy higher than 68%
+and a penalty error lower than 0.74.
+------------------------------------------------------------------------------------
+QQ
+Suppose that instead of the baseline method discussed in the previous video(video 7), we used the baseline method of predicting the most frequent outcome for all observations. This new baseline method would predict cost bucket 1 for everyone.
+
+
+ 
+ To compute the accuracy, you can create a table of the variable ClaimsTest$bucket2009:
+         
+         table(ClaimsTest$bucket2009)
+ 
+ According to the table output, this baseline method would get 122978 observations correct, and all other observations wrong. So the accuracy of this baseline method is 122978/nrow(ClaimsTest) = 0.67127.
+ 
+ For the penalty error, since this baseline method predicts 1 for all observations, it would have a penalty error of:
+         
+         (0*122978 + 2*34840 + 4*16390 + 6*7937 + 8*1057)/nrow(ClaimsTest) = 1.044301
+         
+         ie (column 1 of the penalty matrix)* table(ClaimsTest$bucket2009)
+         
+         PenaltyMatrix
+#      [,1] [,2] [,3] [,4] [,5]
+#[1,]    0    1    2    3    4
+#[2,]    2    0    1    2    3
+#[3,]    4    2    0    1    2
+#[4,]    6    4    2    0    1
+#[5,]    8    6    4    2    0
+
+# table(ClaimsTest$bucket2009)
+
+     1      2      3      4      5 
+122978  34840  16390   7937   1057 
+-----------------------------------------------------------------------------------
+Video 8 Predicting healthcare costs in R
+
+
+In this video, we'll build a CART model
+to predict healthcare cost.
+First, let's make sure the packages rpart and rpart.plot
+are loaded with the library function.
+You should have already installed them
+in the previous lecture on predicting Supreme Court
+decisions.
+Now, let's build our CART model.
+We'll call it ClaimsTree.
+And we'll use the rpart function to predict bucket2009,
+using as independent variables: age, arthritis, alzheimers,
+cancer, copd, depression, diabetes, heart.failure, ihd,
+kidney, osteoporosis, and stroke.
+We'll also use bucket2008 and reimbursement2008.
+The data set we'll use to build our model is ClaimsTrain.
+And then we'll add the arguments, method = "class",
+since we have a classification problem here, and cp = 0.00005.
+Note that even though we have a multi-class classification
+problem here, we build our tree in the same way
+as a binary classification problem.
+So go ahead and hit Enter.
+The cp value we're using here was
+selected through cross-validation
+on the training set.
+We won't perform the cross-validation here,
+because it takes a significant amount of time
+on a data set of this size.
+Remember that we have almost 275,000 observations
+in our training set.
+But keep in mind that the R commands
+needed for cross-validation here are the same as those used
+in the previous lecture on predicting Supreme Court
+decisions.
+So now that our model's done, let's
+take a look at our tree with the prp function.
+It might take a while to load, because we
+have a huge tree here.
+This makes sense for a few reasons.
+One is the large number of observations in our training
+set.
+Another is that we have a five-class classification
+problem, so the classification is
+more complex than a binary classification case,
+like the one we saw in the previous lecture.
+The trees used by D2Hawkeye were also very large CART trees.
+While this hurts the interpretability of the model,
+it's still possible to describe each of the buckets of the tree
+according to the splits.
+So now, let's make predictions on the test set.
+So go back to your R console, and we'll call our predictions
+PredictTest, where we'll use the predict function for our model
+ClaimsTree, and our newdata is ClaimsTest.
+And we want to add type = "class"
+to get class predictions.
+And we can make our classification matrix
+on the test set to compute the accuracy.
+So we'll use the table function, where the actual outcomes are
+ClaimsTest$bucket2009, and our predictions are PredictTest.
+So to compute the accuracy, we need
+to add up the numbers on the diagonal
+and divide by the total number of observations in our test
+set.
+So we have 114141 + 16102 + 118 + 201 + 0.
+And we'll divide by the number of rows in ClaimsTest.
+So the accuracy of our model is 0.713.
+For the penalty error, we can use our penalty matrix
+like we did in the previous video.
+So scroll up to the classification matrix command
+and surround the table function by the as.matrix function,
+and then we'll multiply by PenaltyMatrix.
+So remember that this takes each entry in our classification
+matrix and multiplies it by the corresponding number
+in the penalty matrix.
+So now we just need to add up all
+of the numbers in this matrix by surrounding it by the sum
+function and then dividing by the total number
+of observations in our test set, or nrow(ClaimsTest).
+So our penalty error is 0.758.
+
+###3
+In the previous video, we saw that our baseline method
+had an accuracy of 68% and a penalty error of 0.74.
+So while we increased the accuracy,
+the penalty error also went up.
+Why?
+By default, rpart will try to maximize the overall accuracy,
+and every type of error is seen as having a penalty of one.
+Our CART model predicts 3, 4, and 5 so rarely
+because there are very few observations in these classes.
+So we don't really expect this model
+to do better on the penalty error than the baseline method.
+
+So how can we fix this?
+The rpart function allows us to specify
+a parameter called loss.
+This is the penalty matrix we want
+to use when building our model.
+So let's scroll back up to where we built our CART model.
+At the end of the rpart function,
+we'll add the argument parms = list(loss=PenaltyMatrix).
+This is the name of the penalty matrix we created.
+Close the parentheses and hit Enter.
+So while our model is being built,
+let's think about what we expect to happen.
+If the rpart function knows that we'll
+be giving a higher penalty to some types of errors
+over others, it might choose different splits
+when building the model to minimize
+the worst types of errors.
+We'll probably get a lower overall accuracy
+with this new model.
+But hopefully, the penalty error will be much lower too.
+So now that our model is done, let's regenerate our test
+set predictions by scrolling up to where we created PredictTest
+and hitting Enter, and then recreating our classification
+matrix by scrolling up to the table function
+and hitting Enter again.
+Now let's add up the numbers on the diagonal, 94310 + 18942
++ 4692 + 636 + 2, and divide by the number of rows
+in ClaimsTest.
+And hit Enter.
+So the accuracy of this model is 0.647.
+And we can scroll up and compute the penalty error here
+by going back to the sum command and hitting Enter.
+So the penalty error of our new model is 0.642.
+Our accuracy is now lower than the baseline method,
+but our penalty error is also much lower.
+Note that we have significantly fewer independent variables
+than D2Hawkeye had.
+If we had the hundreds of codes and risk factors
+available to D2Hawkeye, we would hopefully do even better.
+In the next video, we'll discuss the accuracy of the models
+used by D2Hawkeye and how analytics can provide an edge.
+
