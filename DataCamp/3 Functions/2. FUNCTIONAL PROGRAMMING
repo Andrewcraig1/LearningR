@@ -1,4 +1,4 @@
-FUNCTIONAL PROGRAMMING
+Cht 3 FUNCTIONAL PROGRAMMING
 
 You already know how to use a for loop. The goal of this chapter is to teach you how to use the map functions in the purrr package which remove the code that's duplicated across multiple for loops. After completing this chapter you'll be able to solve new iteration problems with greater ease (faster and with fewer bugs).
 

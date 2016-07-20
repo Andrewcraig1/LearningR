@@ -2,7 +2,7 @@ lapply
 
 ________________________________________________________________________________
 Use lapply with a built-in R function
-100xp
+
 Before you go about solving the exercises below, have a look at the documentation of the lapply() function. The Usage section shows the following expression:
 
 lapply(X, FUN, ...)

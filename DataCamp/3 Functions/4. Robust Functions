@@ -1,0 +1,650 @@
+4. Chpt 5 Robust Functions
+
+In this chapter we'll focus on writing functions that don't surprise you or your users. We'll expose you to some functions that work 95% of the time, and 5% of the time fail in surprising ways. You'll learn which functions you should avoid using inside a function and which you should use with care.
+
+A rohbust function must have a clear result or a clear error message.
+
+Three main problems
+● Type-unstable functions
+● Non-standard evaluation
+● Hidden arguments
+
+stopifnot() # error message describes what you want to be true
+
+stop()		# error message describes what the problem is.
+
+
+----------------------------------------------------------------------------------------
+
+### 1 stopifnot() # An error is better than a surprise
+
+Recall our both_na() function from Chapter 2, that finds the number of entries where vectors x and y both have missing values:
+
+both_na <- function(x, y) {
+  sum(is.na(x) & is.na(y))
+}
+
+We had an example where the behavior was a little surprising:
+
+x <- c(NA, NA, NA)
+y <- c( 1, NA, NA, NA)
+both_na(x, y)
+The function works and returns 3, but we certainly didn't design this function with the idea that people could pass in different length arguments.
+
+Using stopifnot() is a quick way to have your function stop, if a condition isn't meant. stopifnot() takes logical expressions as arguments and if any are FALSE an error will occur.
+
+
+# Define troublesome x and y
+x <- c(NA, NA, NA)
+y <- c( 1, NA, NA, NA)
+
+both_na <- function(x, y) {
+  # Add stopifnot() to check length of x and y
+  stopifnot(length(x)==length(y))
+  sum(is.na(x) & is.na(y))
+}
+
+# Call both_na() on x and y
+both_na(x, y)
+
+OUTPUT:
+> both_na(x, y)
+Error: length(x) == length(y) is not TRUE
+
+----------------------------------------------------------------------------------------
+
+### stop() # An informative error is even better
+
+Using stop() instead of stopifnot() allows you to specify a more informative error message. Recall the general pattern for using stop() is:
+
+if (condition) {
+  stop("Error", call. = FALSE)
+}
+Writing good error messages is an important part of writing a good function! We recommend your error tells the user what should be true, not what is false. For example, here a good error would be "x and y must have the same length", rather than the bad error "x and y don't have the same length".
+
+Let's use this pattern to write a better check for the length of x and y.
+
+# Define troublesome x and y
+x <- c(NA, NA, NA)
+y <- c( 1, NA, NA, NA)
+
+both_na <- function(x, y) {
+  # Replace condition with logical
+   if(length(x) != length(y)) {
+    # Replace "Error" with better message
+    stop("x and y must have the same length", call. = FALSE)
+  }  
+  
+  sum(is.na(x) & is.na(y))
+}
+
+# Call both_na() 
+both_na(x, y)
+
+----------------------------------------------------------------------------------------
+### A different kind of surprise: side effects
+
+Side effects describe the things that happen when you run a function that alters the state of your R session. If foo() is a function with no side effects (a.k.a. pure), then when we run x <- foo(), the only change we expect is that the variable x now has a new value. No other variables in the global environment should be changed or created, no output should be printed, no plots displayed, no files saved, no options changed. We know exactly the changes to the state of the session just by reading the call to the function.
+
+The following functions have side effects due to existence of default variables.
+
+show_missings <- function(x) {
+  n <- sum(is.na(x))
+  cat("Missing values: ", n, "\n", sep = "")
+  x
+}
+
+plot_missings <- function(x) {
+  plot(seq_along(x), is.na(x))
+  x
+}
+
+exclude_missings <- function() {
+  options(na.action = "na.exclude")
+}
+
+Whereas the following function has no side effects. All variables are defined within the function.
+
+replace_missings <- function(x, replacement) {
+  x[is.na(x)] <- replacement
+  x
+}
+
+----------------------------------------------------------------------------------------
+
+#### Unstable types
+
+Unstable type means: the type of object returned from these functions can't be predicted without knowing exactly what the inputs are.
+
+Surprises due to unstable types:
+● Type-inconsistent: the type of the return object depends on
+the input
+● Surprises occur when you’ve used a type-inconsistent
+function inside your own function
+● Sometimes lead to hard to decipher error messages
+
+
+Problems occur when you bury type-inconsistent functions inside your own functions.
+
+What to do?
+● In general write your own functions to be type-stable
+● Learn to recognise the common type-inconsistent functions in R: the most common are single bracket subsetting '[' , and 'sapply'
+● Avoid using type-inconsistent functions inside your
+own functions
+● Build a vocabulary of type-consistent functions.
+
+Note all functions in purrr are type consistent
+
+
+
+Example:
+
+sapply is another common culprit
+
+sapply() is another common offender returning unstable types. The type of output returned from sapply() depends on the type of input.
+
+Consider the following data frame and two calls to sapply():
+
+df <- data.frame(
+  a = 1L,
+  b = 1.5,
+  y = Sys.time(),
+  z = ordered(1)
+)
+
+A <- sapply(df[1:4], class) 
+B <- sapply(df[3:4], class)
+What type of objects will be A and B be?
+
+A will be a list, B will be a character matrix.
+
+> typeof(A)
+[1] "list"
+
+> typeof(B)
+[1] "character"
+
+> A
+$a
+[1] "integer"
+
+$b
+[1] "numeric"
+
+$y
+[1] "POSIXct" "POSIXt" 
+
+$z
+[1] "ordered" "factor" 
+
+> B
+     y         z        
+[1,] "POSIXct" "ordered"
+[2,] "POSIXt"  "factor" 
+
+
+----------------------------------------------------------------------------------------
+### Using purrr solves the problem
+
+This unpredictable behaviour is a sign that you shouldn't rely on sapply() inside your own functions.
+
+So, what do you do? Use alternate functions that are type consistent! And you already know a whole set: the map() functions in purrr.
+
+In this example, when we call class() on the columns of the data frame we are expecting character output, so our function of choice should be: map_chr():
+
+df <- data.frame(
+  a = 1L,
+  b = 1.5,
+  y = Sys.time(),
+  z = ordered(1)
+)
+
+A <- map_chr(df[1:4], class) 
+B <- map_chr(df[3:4], class)
+Except that gives us errors. This is a good thing! It alerts us that our assumption (that class() would return purely character output) is wrong.
+
+Let's look at a couple of solutions. First, we could use map() instead of map_chr(). Our result will always be a list, no matter the input.
+--------------
+SOLUTION 1:
+
+> # sapply calls
+> A <- sapply(df[1:4], class) 
+> B <- sapply(df[3:4], class)
+> C <- sapply(df[1:2], class) 
+> 
+> # Demonstrate type inconsistency
+> str(A)
+List of 4
+ $ a: chr "integer"
+ $ b: chr "numeric"
+ $ y: chr [1:2] "POSIXct" "POSIXt"
+ $ z: chr [1:2] "ordered" "factor"
+> str(B)
+ chr [1:2, 1:2] "POSIXct" "POSIXt" "ordered" "factor"
+ - attr(*, "dimnames")=List of 2
+  ..$ : NULL
+  ..$ : chr [1:2] "y" "z"
+> str(C)
+ Named chr [1:2] "integer" "numeric"
+ - attr(*, "names")= chr [1:2] "a" "b"
+> 
+> # Use map() to define X, Y and Z
+> X <- map(df[1:4], class) 
+> Y <- map(df[3:4], class)
+> Z <- map(df[1:2], class) 
+> 
+> 
+> 
+> # Use str() to check type consistency
+> str(X)
+List of 4
+ $ a: chr "integer"
+ $ b: chr "numeric"
+ $ y: chr [1:2] "POSIXct" "POSIXt"
+ $ z: chr [1:2] "ordered" "factor"
+> str(Y)
+List of 2
+ $ y: chr [1:2] "POSIXct" "POSIXt"
+ $ z: chr [1:2] "ordered" "factor"
+> str(Z)
+List of 2
+ $ a: chr "integer"
+ $ b: chr "numeric"
+> 
+---------------------
+
+## SOLUTION 2: A type consistent solution
+
+If we wrap our solution into a function, we can be confident that this function will always return a list because we've used a type consistent function, map():
+
+col_classes <- function(df) {
+  map(df, class)
+}
+
+But what if you wanted this function to always return a character string?
+
+One option would be to decide what should happen if class() returns something longer than length 1. For example, we might simply take the first element of the vector returned by class(). 
+
+Use map_chr() along with the numeric subsetting SHORTCUT, to extract the first element from every item in class_list.
+--------
+example:
+
+col_classes <- function(df) {
+  # Assign list output to class_list
+  class_list <- map(df, class)
+  
+  # Use map_chr() to extract first element in class_list
+  map_chr(class_list, 1)
+}
+
+# Check that our new function is type consistent
+df %>% col_classes() %>% str()
+df[3:4] %>% col_classes() %>% str()
+df[1:2] %>% col_classes() %>% str()
+
+OUTPUT
+
+# Check that our new function is type consistent
+> df %>% col_classes() %>% str()
+ Named chr [1:4] "integer" "numeric" "POSIXct" "ordered"
+ - attr(*, "names")= chr [1:4] "a" "b" "y" "z"
+> df[3:4] %>% col_classes() %>% str()
+ Named chr [1:2] "POSIXct" "ordered"
+ - attr(*, "names")= chr [1:2] "y" "z"
+> df[1:2] %>% col_classes() %>% str()
+ Named chr [1:2] "integer" "numeric"
+ - attr(*, "names")= chr [1:2] "a" "b"
+> 
+----------------------------------------
+
+## Solution 3: Or fail early if something goes wrong
+
+Another option would be to simply fail. We could rely on map_chr()'s type consistency to fail for us:
+
+col_classes <- function(df) {
+  map_chr(df, class)
+}
+
+df %>% col_classes() %>% str()
+Or, check the condition ourselves and return an informative error message. We'll implement this approach in this exercise.
+
+As you write more functions, you'll find you often come across this tension between implementing a function that does something sensible when something surprising happens, or simply fails when something surprising happens. 
+
+OUR RECOMMENDATION is to fail when you are writing functions that you'll use behind the scenes for programming and to do something sensible when writing functions for users to use interactively.
+
+(And by the way, flatten_chr() is yet another useful function in purrr. It takes a list and removes its hierarchy. The suffix _chr indicates that this is another type consistent function, and will either return a character string or an error message.)
+
+------
+Example:
+
+Note: map_dbl(class_list, length) will give you a vector of lengths for the elements in class_list, check if any() are greater than 1. It might be helpful to know that, in this case, the one and only argument to any() is a conditional statement.
+
+col_classes <- function(df) {
+  class_list <- map(df, class)
+  
+  # Add a check that no element of class_list has length > 1
+  if (any(map_dbl(class_list, length) > 1)) {
+    stop("Some columns have more than one class", call. = FALSE)
+  }
+  
+  # Use flatten_chr() to return a character vector
+  flatten_chr(class_list)
+}
+
+# Check that our new function is type consistent
+df %>% col_classes() %>% str()
+df[3:4] %>% col_classes() %>% str()
+df[1:2] %>% col_classes() %>% str()
+
+---------
+Output
+
+> df %>% col_classes() %>% str()
+Error: Some columns have more than one class
+> df[3:4] %>% col_classes() %>% str()
+Error: Some columns have more than one class
+> df[1:2] %>% col_classes() %>% str()
+ chr [1:2] "integer" "numeric"
+> 
+
+----------------------------------------------------------------------------------------
+
+#### Non-standard evaluation
+
+● Non-standard evaluation functions don’t use the usual
+lookup rules
+
+● Great for data analysis, because they save typing
+
+refer to http://rpubs.com/hadley/157957
+
+-----
+## Programming with NSE functions
+
+Let's take a look at a function that uses the non-standard evaluation (NSE) function filter() from the dplyr package:
+
+big_x <- function(df, threshold) {
+  dplyr::filter(df, x > threshold)
+}
+This big_x() function attempts to return all rows in df where the x column exceeds a certain threshold. Let's get a feel for how it might be used.
+
+Example:
+# Use big_x() to find rows in diamonds_sub where x > 7
+big_x(diamonds_sub, 7)
+
+Output:
+> big_x(diamonds_sub, 7)
+# A tibble: 2 x 10
+  carat   cut color clarity depth table price     x     y     z
+  <dbl> <ord> <ord>   <ord> <dbl> <dbl> <int> <dbl> <dbl> <dbl>
+1  1.35 Ideal     G     VS1  60.9    54 10471  7.18  7.15  4.36
+2  1.63 Ideal     F      I1  62.0    55  7229  7.57  7.50  4.68
+> 
+
+----------------------
+When things go wrong:
+
+Now, let's see how this function might fail. There are two instances in which the non-standard evaluation of filter() could cause surprising results:
+
+The x column doesn't exist in df.
+There is a threshold column in df.
+Let's illustrate these failures. In each case we'll use big_x() in the same way as the previous exercise, so we should expect the same output. However, not only do we get unexpected outputs, there is no indication (i.e. error message) that lets us know something might have gone wrong.
+
+Example:
+# Remove the x column from diamonds
+diamonds_sub$x <- NULL
+
+# Create variable x with value 1
+x<-1
+
+# Use big_x() to find rows in diamonds_sub where x > 7
+big_x(diamonds_sub, 7)
+
+# Create a threshold column with value 100
+diamonds_sub$threshold <- 100
+
+# Use big_x() to find rows in diamonds_sub where x > 7
+big_x(diamonds_sub, 7)
+
+Output:
+
+ # Remove the x column from diamonds
+> diamonds_sub$x <- NULL
+> 
+> # Create variable x with value 1
+> x<-1
+> 
+> # Use big_x() to find rows in diamonds_sub where x > 7
+> big_x(diamonds_sub, 7)
+# A tibble: 0 x 10
+# ... with 10 variables: carat <dbl>, cut <ord>, color <ord>, clarity <ord>,
+#   depth <dbl>, table <dbl>, price <int>, y <dbl>, z <dbl>, threshold <dbl>
+> 
+> # Create a threshold column with value 100
+> diamonds_sub$threshold <- 100
+> 
+> # Use big_x() to find rows in diamonds_sub where x > 7
+> big_x(diamonds_sub, 7)
+# A tibble: 0 x 10
+# ... with 10 variables: carat <dbl>, cut <ord>, color <ord>, clarity <ord>,
+#   depth <dbl>, table <dbl>, price <int>, y <dbl>, z <dbl>, threshold <dbl>
+>
+-------------
+
+What to do?
+
+To avoid the problems caused by non-standard evaluation functions, you could avoid using them. In our example, we could achieve the same results by using standard subsetting (i.e. []) instead of filter(). For more insight into dealing with NSE and how to write your own non-standard evaluation functions, we recommend reading Hadley's vignette on the topic. Also, programming with the NSE functions in dplyr will be easier in a future version.
+
+If you do need to use non-standard evaluation functions, it's up to you to provide protection against the problem cases. That means you need to know what the problem cases are, to check for them, and to fail explicitly.
+
+To see what that might look like, let's rewrite big_x() to fail for our problem cases.
+
+# Note the use of function: '%in%' meaning "value matches".
+      'x %in% table' or 'match(x, table, nomatch = NA_integer_, incomparables = NULL)'
+ref: https://stat.ethz.ch/R-manual/R-devel/library/base/html/match.html
+
+Example:
+
+big_x <- function(df, threshold) {
+  # Write a check for x not being in df
+  if (!"x" %in% names(df)){
+      stop("df must contain variable called x",call. = FALSE)
+  }
+  
+  # Write a check for threshold being in df
+  
+  if ("threshold" %in%  names(df)){
+      stop("df must not contain variable called threshold",call. = FALSE)
+  }
+  
+  
+  dplyr::filter(df, x > threshold)
+}
+
+------------------------------------------------------------------------------
+
+Hidden arguments
+
+Pure functions
+1. Their output only depends on their inputs
+2. They don’t affect the outside world except through their
+return value
+● Hidden arguments are function inputs that may be
+different for different users or sessions
+● Common example: argument defaults that depend on
+global options
+
+
+Relying on options in your code
+● The return value of a function should never depend on a
+global option
+● Side effects may be controlled by global options
+
+
+----------------
+
+A hidden dependence
+
+A classic example of a hidden dependence is the stringsAsFactors argument to the read.csv() function (and a few other data frame functions.)
+
+When you see the following code, you don't know exactly what the result will be:
+
+pools <- read.csv("swimming_pools.csv")
+That's because if the argument stringsAsFactors isn't specified, it inherits its value from getOption("stringsAsFactors"), a global option that a user may change.
+
+Just to prove that this is the case, let's illustrate the problem.
+
+Example:
+
+# Read in the swimming_pools.csv to pools
+pools <- read.csv("swimming_pools.csv")
+
+# Examine the structure of pools
+str(pools)
+
+# Change the global stringsAsFactor option to FALSE
+options(stringsAsFactors = FALSE)
+
+# Read in the swimming_pools.csv to pools2
+pools2 <- read.csv("swimming_pools.csv")
+
+# Examine the structure of pools2
+str(pools2)
+
+Output:
+
+> # Read in the swimming_pools.csv to pools
+> pools <- read.csv("swimming_pools.csv")
+> 
+> # Examine the structure of pools
+> str(pools)
+'data.frame': 20 obs. of  4 variables:
+ $ Name     : Factor w/ 20 levels "Acacia Ridge Leisure Centre",..: 1 2 3 4 5 6 19 7 8 9 ...
+ $ Address  : Factor w/ 20 levels "1 Fairlead Crescent, Manly",..: 5 20 18 10 9 11 6 15 12 17 ...
+ $ Latitude : num  -27.6 -27.6 -27.6 -27.5 -27.4 ...
+ $ Longitude: num  153 153 153 153 153 ...
+> 
+> # Change the global stringsAsFactor option to FALSE
+
+> options(stringsAsFactors = FALSE)
+> 
+> # Read in the swimming_pools.csv to pools2
+
+> pools2 <- read.csv("swimming_pools.csv")
+> 
+> # Examine the structure of pools2 - note variables are now characters not factors.
+
+> str(pools2)
+'data.frame': 20 obs. of  4 variables:
+ $ Name     : chr  "Acacia Ridge Leisure Centre" "Bellbowrie Pool" "Carole Park" "Centenary Pool (inner City)" ...
+ $ Address  : chr  "1391 Beaudesert Road, Acacia Ridge" "Sugarwood Street, Bellbowrie" "Cnr Boundary Road and Waterford Road Wacol" "400 Gregory Terrace, Spring Hill" ...
+ $ Latitude : num  -27.6 -27.6 -27.6 -27.5 -27.4 ...
+ $ Longitude: num  153 153 153 153 153 ...
+> 
+--------------------------------------
+
+### Legitimate use of options
+
+## In general, you want to avoid having the return value of your own functions depend on any global options. That way, you and others can reason about your functions without needing to know the current state of the options.
+
+# It is, however, okay to have "side effects" of a function depend on global options. For example, the print() function uses getOption("digits") as the default for the digits argument. This gives users some control over how results are displayed, but doesn't change the underlying computation.
+
+Let's take a look at an example function that uses a global default sensibly. The print.lm() function has the options digits with default max(3, getOption("digits") - 3).
+
+Example:
+
+We've fit a regression model of fuel efficiency on weight using the mtcars dataset.
+
+Use summary() to take a look at the fitted regression model. Pay particular attention to number of decimal places reported.
+Set the global digits option to 2: options(digits = 2).
+Take another look at the fitted model using summary(). Notice the number of decimal places has changed, but there is no change to the underlying fit object.
+
+> # Fit a regression model
+> fit <- lm(mpg ~ wt, data = mtcars)
+> 
+> # Look at the summary of the model
+> summary(fit)
+
+Call:
+lm(formula = mpg ~ wt, data = mtcars)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-4.5431 -2.3647 -0.1252  1.4096  6.8727 
+
+Coefficients:
+            Estimate Std. Error t value  Pr(>|t|)    
+(Intercept)  37.2851     1.8776  19.858 < 2.2e-16 ***
+wt           -5.3445     0.5591  -9.559 1.294e-10 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 3.0459 on 30 degrees of freedom
+Multiple R-squared:  0.75283, Adjusted R-squared:  0.74459 
+F-statistic: 91.375 on 1 and 30 DF,  p-value: 1.294e-10
+> 
+---------
+> # Set the global digits option to 2
+> options(digits = 2)
+> 
+> # Take another look at the summary
+> summary(fit)
+
+Call:
+lm(formula = mpg ~ wt, data = mtcars)
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-4.543 -2.365 -0.125  1.410  6.873 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   37.285      1.878   19.86  < 2e-16 ***
+wt            -5.344      0.559   -9.56  1.3e-10 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 3 on 30 degrees of freedom
+Multiple R-squared:  0.753, Adjusted R-squared:  0.745 
+F-statistic: 91.4 on 1 and 30 DF,  p-value: 1.29e-10
+> 
+---------------------------------------------------------------------------------
+SUMMARY
+
+1 Writing functions
+● If you have copy-and-pasted two times, it’s time to write a
+function
+● Solve a simple problem, before writing the function
+● A good function is both correct and understandable
+
+
+2 Functional Programming
+● Abstract away the pa"ern, so you can focus on the data and
+actions
+● Solve iteration problems more easily
+● Have more understandable code
+
+3 Remove duplication and improve readability
+
+4 Unusual inputs and outputs
+● Deal with failure using safely()
+● Iterate over two or more arguments
+● Iterate functions for their side effects
+
+5 Write functions that don’t surprise
+● Use stop() and stopifnot() to fail early
+● Avoid using type-inconsistent functions in your own
+functions
+● Avoid non-standard evaluation functions in your own
+functions
+● Never rely on global options for computational details
+
+6 Wrapping up
+● Solve the problem that you’re working on
+● Never feel bad about writing in-elegant code or using a for loop!
+● Get a function that works right, for the easiest 80% of the
+problem
+● In time, you’ll learn how to get to 99% with minimal extra
+effort
+● Concise and elegant code is something to strive towards!
+

@@ -2,9 +2,13 @@
 
 Now you've seen how useful the map functions are for reducing duplication, we'll introduce you to a few more functions in purrr that allow you to handle more complicated inputs and outputs. In particular, you'll learn how to deal with functions that might return an error, how to iterate over multiple arguments and how to iterate over functions that have no output at all.
 
+1-4     MANAGING ERRORS 
+5 - 8   MAP OVER MULTIPLE FUNCTIONS 
+9 - 14  MAPS WITH SIDE EFFECTS
+
 --------------------------------------------------------------------------------
 
-## 1. Creating a safe function
+## 1. purrr function "safely" - Creating a safe function
 
 safely() is an adverb; it takes a verb and modifies it. That is, it takes a function as an argument and it returns a function as its output. The function that is returned is modified so it never throws an error (and never stops the rest of your computation!).
 
@@ -205,7 +209,7 @@ List of 3
 <simpleError in file(con, "r"): cannot open the connection>
 
 --------------------------------------------------------------------------------
-## 3. Working with safe output
+## 3. purrr function "transpose" - Working with safe output
 
 We now have output that contains the HTML for each of the two URLs on which readLines() was successful and the error for the other. But the output isn't that easy to work with, since the results and errors are buried in the inner-most level of the list.
 
@@ -215,8 +219,473 @@ nested_list <- list(
    x1 = list(a = 1, b = 2),
    x2 = list(a = 3, b = 4)
 )
+
 If I need to extract the a element in x1, I could do nested_list[["x1"]][["a"]]. However, if I transpose the list first, the order of subsetting reverses. That is, to extract the same element I could also do transpose(nested_list)[["a"]][["x1"]].
 
 This is really handy for safe output, since we can grab all the results or all the errors really easily.
+
+---------------------------------
+Example
+# Define save_readLines() and html
+safe_readLines <- safely(readLines)
+html <- map(urls, safe_readLines)
+
+# Examine the structure of transpose(html)
+str(transpose(html))
+
+# Extract the results: res
+res <- transpose(html) [["result"]]
+res
+
+# Extract the errors: errs
+errs <- transpose(html) [["error"]]
+errs
+
+--------------
+OUTPUT 
+
+> str(transpose(html))
+List of 2
+ $ result:List of 3
+  ..$ example: chr [1:50] "<!doctype html>" "<html>" "<head>" "    <title>Example Domain</title>" ...
+  ..$ rproj  : chr [1:102] "<!DOCTYPE html>" "<html lang=\"en\">" "  <head>" "    <meta charset=\"utf-8\">" ...
+  ..$ asdf   : NULL
+ $ error :List of 3
+  ..$ example: NULL
+  ..$ rproj  : NULL
+  ..$ asdf   :List of 2
+  .. ..$ message: chr "cannot open the connection"
+  .. ..$ call   : language file(con, "r")
+  .. ..- attr(*, "class")= chr [1:3] "simpleError" "error" "condition"
+> 
+
+
+> # Extract the errors: errs
+> errs <- transpose(html) [["error"]]
+> errs
+$example
+NULL
+
+$rproj
+NULL
+
+$asdf
+<simpleError in file(con, "r"): cannot open the connection>
+
+--------------------------------------------------------------------------------
+### 4 Working with errors and results
+
+What you do with the errors and results is up to you. But, commonly you'll want to collect all the results for the elements that were successful and examine the inputs for all those that weren't.
+
+# Initialize some objects
+safe_readLines <- safely(readLines)
+html <- map(urls, safe_readLines)
+res <- transpose(html)[["result"]]
+errs <- transpose(html)[["error"]]
+
+# Create a logical vector is_ok
+is_ok <- map_lgl(errs, is_null)
+str(is_ok)
+
+# Extract the successful results
+res[is_ok]
+
+# Extract the input from the unsuccessful results
+urls[!is_ok]
+
+OUTPUT
+
+> # Extract the successful results
+> res[is_ok]
+$example
+ [1] "<!doctype html>"                                                                                      
+ [2] "<html>"                                                                                               
+ [3] "<head>"                                                                                               
+...                                                                                              
+[49] "</body>"                                                                                              
+[50] "</html>"                                                                                              
+
+$rproj
+  [1] "<!DOCTYPE html>"                                                                                                                                                                                                                                                                                                                                     
+  [2] "<html lang=\"en\">"                                                                                                                                                                                                                                                                                                                                  
+  [3] "  <head>"                                                                                                                                                                                                                                                        ...                                                                                   
+                                                                                                                                                                                                                                                         
+[100] "    <script src=\"/js/bootstrap.min.js\"></script>"    
+
+[101] "  </body>"                                                                                                                                                                                                                                                                                                                                           
+[102] "</html>"                                                                                                                                                                                                                                                          ------                                                                                   
+> 
+> # Extract the input from the unsuccessful results
+> urls[!is_ok]
+$asdf
+[1] "http://asdfasdasdkfjlda"
+> 
+--------------------------------------------------------------------------------
+
+#### 5 - 8   MAP OVER MULTIPLE FUNCTIONS 
+
+map2( .x, .y, .f, ...)      # Use "map2()" to iterate over two arguments
+
+pmap (.l, .f, ...)			# to iterate over any number of arguments, where .l is lists
+
+invoke_map (.f, .x, ...)    # iterate over functions - the order is reversed
+
+--------------------------------------------------------------------------------
+
+### 6. Using map() - Getting started
+
+We'll use random number generation as an example throughout the remaining exercises in this chapter. To get started, let's imagine simulating 5 random numbers from a Normal distribution. You can do this in R with the rnorm() function. For example, to generate 5 random numbers from a Normal distribution with mean zero, we can do:
+
+rnorm(n = 5)
+Now, imagine you want to do this three times, but each time with a different sample size. You already know how! Let's use the map() function to get it done.
+
+------------------
+# Create a list n containing the values: 5, 10, and 20
+n<- list(5,10,20)
+
+
+# Call map() on n with rnorm() to simulate three samples
+map(n, rnorm)
+
+--------
+OUTPUT
+> map(n, rnorm)
+[[1]]
+[1] -0.6264538  0.1836433 -0.8356286  1.5952808  0.3295078
+
+[[2]]
+ [1] -0.8204684  0.4874291  0.7383247  0.5757814 -0.3053884  1.5117812
+ [7]  0.3898432 -0.6212406 -2.2146999  1.1249309
+
+[[3]]
+ [1] -0.04493361 -0.01619026  0.94383621  0.82122120  0.59390132  0.91897737
+ [7]  0.78213630  0.07456498 -1.98935170  0.61982575 -0.05612874 -0.15579551
+[13] -1.47075238 -0.47815006  0.41794156  1.35867955 -0.10278773  0.38767161
+[19] -0.05380504 -1.37705956
+> 
+------------------
+
+### 7. Using map2() - Mapping over two arguments
+
+Ok, but now imagine we don't just want to vary the sample size, we also want to vary the mean. The mean can be specified in rnorm() by the argument mean. Now there are two arguments to rnorm() we want to vary: n and mean.
+
+The map2() function is designed exactly for this purpose; it allows iteration over two objects. The first two arguments to map2() are the objects to iterate over and the third argument .f is the function to apply.
+
+Let's use map2() to simulate three samples with different sample sizes and different means.
+
+# Initialize n
+n <- list(5, 10, 20)
+
+# Create a list mu containing the values: 1, 5, and 10
+mu <- list(1,5,10)
+
+# Edit to call map2() on n and mu with rnorm() to simulate three samples
+map2(n, mu, rnorm) 
+
+--------
+OUTPUT
+> # Edit to call map2() on n and mu with rnorm() to simulate three samples
+
+> map2(n, mu, rnorm) 
+[[1]]
+[1] 0.3735462 1.1836433 0.1643714 2.5952808 1.3295078
+
+[[2]]
+ [1] 4.179532 5.487429 5.738325 5.575781 4.694612 6.511781 5.389843 4.378759
+ [9] 2.785300 6.124931
+
+[[3]]
+ [1]  9.955066  9.983810 10.943836 10.821221 10.593901 10.918977 10.782136
+ [8] 10.074565  8.010648 10.619826  9.943871  9.844204  8.529248  9.521850
+[15] 10.417942 11.358680  9.897212 10.387672  9.946195  8.622940
+ -----------------------------------------------------
+ ### 8. Using pmap ()- Mapping over more than two arguments
+
+ When iterating over the arguments of a function use pmap:
+
+But wait, there's another argument to rnorm() we might want to vary: sd, the standard deviation of the Normal distribution. You might think there is a map3() function, but there isn't. Instead purrr provides a pmap() function that iterates over 2 or more arguments.
+
+First, let's take a look at pmap() for the situation we just solved: iterating over two arguments. Instead of providing each item to iterate over as arguments, pmap() takes a list of arguments as its input. For example, we could replicate our previous example, iterating over both n and mu with the following:
+
+n <- list(5, 10, 20)
+mu <- list(1, 5, 10)
+
+pmap(list(n, mu), rnorm)
+Notice how we had to put our two items to iterate over (n and mu) into a list.
+
+Let's expand this code to iterate over varying standard deviations too.
+ ------
+ Example:
+
+# Initialize n and mu
+n <- list(5, 10, 20)
+mu <- list(1, 5, 10)
+
+# Create a sd list with the values: 0.1, 1 and 0.1
+sd <- list(0.1,1,0.1)
+
+# Edit this call to pmap() to iterate over the sd list as well
+pmap(list(n, mu, sd), rnorm)
+
+ ------
+OUTPUT
+> pmap(list(n, mu, sd), rnorm)
+[[1]]
+[1] 0.9373546 1.0183643 0.9164371 1.1595281 1.0329508
+
+[[2]]
+ [1] 4.179532 5.487429 5.738325 5.575781 4.694612 6.511781 5.389843 4.378759
+ [9] 2.785300 6.124931
+
+[[3]]
+ [1]  9.995507  9.998381 10.094384 10.082122 10.059390 10.091898 10.078214
+ [8] 10.007456  9.801065 10.061983  9.994387  9.984420  9.852925  9.952185
+[15] 10.041794 10.135868  9.989721 10.038767  9.994619  9.862294
+> 
+ -----------------------------------------------------
+
+### 8. pmap() - Argument matching within a function
+
+When iterating over the arguments of a function use position correctly or name the arguments correctly)
+
+Compare the following two calls to pmap() (run them in the console and compare their output too!):
+
+pmap(list(n, mu, sd), rnorm)
+pmap(list(mu, n, sd), rnorm)
+
+What's the difference? By default pmap() matches the elements of the list to the arguments in the function by position. In the first case, n to the n argument of rnorm(), mu to the mean argument of rnorm(), and sd to the sd argument of rnorm(). In the second case mu gets matched to the n argument of rnorm(), which is clearly not what we intended!
+
+Instead of relying on this positional matching, a safer alternative is to provide names in our list. The name of each element should be the argument name we want to match it to.
+
+Let's fix up that second call.
+
+
+# Name the elements of the argument list
+pmap(list( mean=mu,n = n, sd = sd), rnorm)
+
+Note the order did not change but the naming is specific allowing the function to find the arguments. Using ?rnorm in R console, we find its definition, and its arguments are: rnorm(n, mean = 0, sd = 1). Now we can match the names.
+ -----------------------------------------------------
+
+### 9. using "invoke_map()" : Mapping over functions and their arguments
+
+Sometimes it's not the arguments to a function you want to iterate over, but a set of functions themselves. Imagine that instead of varying the parameters to rnorm() we want to simulate from different distributions, say, using rnorm(), runif(), and rexp(). How do we iterate over calling these functions?
+
+In purrr, this is handled by the invoke_map() function. The first argument is a list of functions. In our example, something like:
+
+f <- list("rnorm", "runif", "rexp")
+
+The second argument specifies the arguments to the functions. In the simplest case, all the functions take the same argument, and we can specify it directly, relying on ... to pass it to each function. In this case, call each function with the argument n = 5:
+
+invoke_map(f, n = 5) 
+In more complicated cases, the functions may take different arguments, or we may want to pass different values to each function. In this case, we need to supply invoke_map() with a list, where each element specifies the arguments to the corresponding function.
+
+Let's use this approach to simulate three samples from the following three distributions: Normal(10, 1), Uniform(0, 5), and Exponential(5).
+
+Example:
+# Define list of functions
+f <- list("rnorm", "runif", "rexp")
+
+# Parameter list for rnorm()
+rnorm_params <- list(mean = 10)
+
+# Add a min element with value 0 and max element with value 5
+runif_params <- list( min = 0, max = 5)
+
+# Add a rate element with value 5
+rexp_params <- list(5)
+
+# Define params for each function
+params <- list(
+  rnorm_params,
+  runif_params,
+  rexp_params
+)
+
+# Call invoke_map() on f supplying params as the second argument
+invoke_map(f, params, n = 5)
+
+------------
+OUTPUT:
+
+> invoke_map(f, params, n = 5)
+[[1]]
+[1]  9.373546 10.183643  9.164371 11.595281 10.329508
+
+[[2]]
+[1] 1.0298729 0.8827838 3.4351142 1.9205186 3.8492071
+
+[[3]]
+[1] 0.1913135 0.0294092 0.2781470 0.1524060 0.2475207
+> 
+
+----------------------------------------------------------------------
+
+#### MAPS WITH SIDE EFFECTS
+### 9 - 14
+
+Side effects describe:
+- Things that happen beyond the results of a function
+- Examples include: printing output, plotting and saving files to disk.
+- walk() works like map(), but it is designed for functions called for their side effects.
+
+--------------------------------------------------------------------------------
+### 9 walk()
+
+walk() operates just like map() except it's designed for functions that don't return anything. You use walk() for functions with side effects like printing, plotting or saving.
+
+Let's check that our simulated samples are in fact what we think they are by plotting a histogram for each one.
+
+# Define list of functions
+f <- list(Normal = "rnorm", Uniform = "runif", Exp = "rexp")
+
+# Define params
+params <- list(
+  Normal = list(mean = 10),
+  Uniform = list(min = 0, max = 5),
+  Exp = list(rate = 5)
+)
+
+# Assign the simulated samples to sims
+sims<-invoke_map(f, params, n = 50)
+
+# Use walk() to make a histogram of each element in sims
+walk(sims, hist)
+
+Output 3 histograms
+
+--------------------------------
+### 10. walk2()
+
+Walking over two or more arguments
+
+Those histograms were pretty good, but they really needed better breaks for the bins on the x-axis. That means we need to vary two arguments to hist(): x and breaks. Remember map2()? That allowed us to iterate over two arguments. Guess what? There is a walk2(), too!
+
+Let's use walk2() to improve those histograms with better breaks.
+
+We've loaded sims in your workspace.
+
+The default value for the breaks argument to hist() is "Sturges". Replace "Sturges" in the breaks_list list with reasonable breaks for the histograms. Let's use seq(from,to,step): i.e.
+
+seq(6, 16, 0.5) for the Normal, 
+seq(0, 5, 0.25) for the Uniform and 
+seq(0, 1.5, 0.1) for the Exponential.
+
+Use walk2() to create a histogram for each sample with the breaks in breaks_list.
+
+# Replace "Sturges" with reasonable breaks for each sample
+breaks_list <- list(
+  Normal = seq(6, 16, 0.5),
+  Uniform = seq(0, 5, 0.25),
+  Exp = seq(0, 1.5, 0.1)
+)
+
+# Use walk2() to make histograms with the right breaks:
+
+walk2(sims, breaks_list, hist)
+
+-------------------------------------------
+### 11.  Putting together writing functions and walk
+
+In the previous exercise, we hard-coded the breaks, but that was a little lazy. Those breaks probably won't be great if we change the parameters of our simulation.
+
+A better idea would be to generate reasonable breaks based on the actual values in our simulated samples. This is a great chance to review our function writing skills and combine our own function with purrr.
+
+Let's start by writing our own function find_breaks(), which copies the default breaks in the ggplot2 package: break the range of the data in 30 bins.
+
+How do we start? Simple, of course! Here's a snippet of code that works for the first sample:
+
+rng <- range(sims[[1]], na.rm = TRUE)
+seq(rng[1], rng[2], length.out = 30)
+Your job in this exercise is to turn that snippet into a function.
+
+In the next exercise, we'll combine find_breaks() with map() and walk2() to create histograms with sensible breaks.
+
+FROM
+
+  rng <- range(sims[[1]], na.rm = TRUE)
+  seq(rng[1], rng[2], length.out = 30)
+
+TO
+  find_breaks <- function(x) {
+  rng <- range(x, na.rm = TRUE)
+  seq(rng[1], rng[2], length.out = 30)
+}
+
+# Call find_breaks() on sims[[1]]
+
+find_breaks(sims[[1]])
+
+-------------------------------------------
+### 12.  Combining map() and walk2() 
+
+Example (continued) - Nice breaks for all: 
+
+Now that we have find_breaks(), we can find nice breaks for all the samples using map(). Then, pass the result into walk2() to get nice (but custom breaks) for our samples.
+
+# Use map() to iterate find_breaks() over sims: nice_breaks 
+
+  nice_breaks<-map(sims, find_breaks)
+
+# Use nice_breaks as the second argument to walk2():
+
+  walk2(sims, nice_breaks, hist)
+
+-------------------------------------------
+
+### 13. pwalk()  - Walking with many arguments
+
+
+
+Example (continued):
+
+We just completed:
+
+walk2(sims, nice_breaks, hist, xlab = "")
+
+But, what about the titles? We don't want them to be the same for each plot. How can we iterate over the arguments x, breaks and main? You guessed it, there is a pwalk() function that works just like pmap().
+
+Let's use pwalk() to tidy up these plots. Also, let's increase our sample size to 1000.
+
+# Increase sample size to 1000
+> sims <- invoke_map(f, params, n = 1000)
+> 
+> # Compute nice_breaks (don't change this)
+> nice_breaks <- map(sims, find_breaks)
+> 
+> # Create a vector nice_titles
+> nice_titles <- c("Normal(10, 1)", "Uniform(0, 5)", "Exp(5)")
+> 
+> # Use pwalk() instead of walk2()
+> pwalk(list(x = sims, breaks = nice_breaks, main = nice_titles), hist, xlab = "")
+> 
+The first argument of pwalk() should be a list that relies on matching arguments by name for the function hist(). That is, something like this:
+list(x = ___, breaks = ___, main = ___)
+
+The hist iterates first over sims data, then breaks and then nice titles. Very clever!
+
+----------------------------------------------------
+### 14.
+Walking with pipes
+
+One of the nice things about the walk() functions is that they return the object you passed to them. This means they can easily be used in pipelines (a pipeline is just a short way of saying "a statement with lots of pipes").
+
+To illustrate, we'll return to our first example of making histograms for each sample:
+
+walk(sims, hist)
+Take a look at what gets returned:
+
+tmp <- walk(sims, hist)
+str(tmp)
+It's our original sims object. That means we can pipe the sims object along to other functions. For example, we might want some basic summary statistics on each sample as well as our histograms.
+
+Example:
+
+# Pipe this along to map(), using summary() as .f
+
+sims %>% 
+  walk(hist) %>% map(summary)
+
+----------------------------------------------------------------------------------------
+
 
 
